@@ -17,31 +17,25 @@ export function AgentCard({ agent }: { agent: AgentMock }) {
       className="group relative flex w-[78vw] shrink-0 flex-col rounded-[26px] bg-card p-6 shadow-card transition-all duration-300 ease-smooth hover:-translate-y-1 hover:shadow-lift sm:w-[300px] md:w-auto"
       style={{ ["--agent" as string]: agent.color } as React.CSSProperties}
     >
-      {/* header: large portrait + identity */}
+      {/* header: clean portrait + identity (no glow — Apple restraint) */}
       <div className="flex items-center gap-4">
         <div className="relative shrink-0">
-          {/* soft colored halo, always visible, stronger on hover */}
-          <span
-            aria-hidden
-            className="absolute -inset-1.5 rounded-full opacity-30 blur-lg transition-opacity duration-300 group-hover:opacity-60"
-            style={{ backgroundColor: agent.color }}
-          />
-          <span
-            className="relative block rounded-full p-[3px]"
-            style={{ background: `linear-gradient(145deg, ${agent.color}, ${agent.color}55)` }}
+          <div
+            className="rounded-full p-[2px] shadow-[0_8px_20px_-8px_rgba(16,24,40,0.25)]"
+            style={{ backgroundColor: `${agent.color}66` }}
           >
             <Image
               src={agent.avatar}
               alt={agent.name}
               width={104}
               height={104}
-              className="h-[92px] w-[92px] rounded-full border-[3px] border-white bg-white object-cover"
+              className="h-[88px] w-[88px] rounded-full border-2 border-white bg-white object-cover"
               style={{ objectPosition: "50% 26%" }}
               priority
             />
-          </span>
+          </div>
           <span
-            className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-full border-[3px] border-white"
+            className="absolute bottom-0.5 right-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full border-[3px] border-white"
             style={{ backgroundColor: status.color }}
             aria-hidden
           >
@@ -52,7 +46,7 @@ export function AgentCard({ agent }: { agent: AgentMock }) {
         </div>
 
         <div className="min-w-0">
-          <p className="font-display text-2xl font-semibold leading-none tracking-tightest text-ink">
+          <p className="font-display text-[22px] font-semibold leading-none tracking-tightest text-ink">
             {agent.name}
           </p>
           <p className="mt-1.5 text-[13px] text-muted">{agent.role}</p>
@@ -66,18 +60,14 @@ export function AgentCard({ agent }: { agent: AgentMock }) {
         </div>
       </div>
 
-      {/* chat bubble — as if the agent is talking to you */}
+      {/* speech bubble — neutral iMessage-style gray */}
       <div className="relative mt-5">
         <span
           aria-hidden
-          className="absolute -top-1.5 left-6 h-3 w-3 rotate-45 rounded-[2px]"
-          style={{ backgroundColor: `${agent.color}12` }}
+          className="absolute -top-1 left-6 h-2.5 w-2.5 rotate-45 rounded-[2px] bg-ink/[0.045]"
         />
-        <div
-          className="rounded-2xl px-4 py-3"
-          style={{ backgroundColor: `${agent.color}12` }}
-        >
-          <p className="text-[13.5px] italic leading-relaxed text-ink/75">
+        <div className="rounded-2xl bg-ink/[0.045] px-4 py-3">
+          <p className="text-[13.5px] italic leading-relaxed text-ink/70">
             {agent.speech}
           </p>
         </div>
@@ -86,7 +76,7 @@ export function AgentCard({ agent }: { agent: AgentMock }) {
       {/* stat */}
       <div className="mt-5">
         <p
-          className="font-display text-[40px] font-semibold leading-none tracking-tightest"
+          className="font-display text-[40px] font-semibold leading-none tracking-apple-tight"
           style={{ color: agent.color }}
         >
           {agent.stat.value}
@@ -94,7 +84,7 @@ export function AgentCard({ agent }: { agent: AgentMock }) {
         <p className="mt-1.5 text-xs text-muted">{agent.stat.label}</p>
       </div>
 
-      {/* CTA — fills with the agent color on hover */}
+      {/* CTA — tinted, fills with the agent color on hover */}
       <Link
         href={`/dashboard/${agent.key === "veille" ? "luna" : agent.key}`}
         className="agent-cta levo-pressable mt-5 inline-flex items-center justify-between rounded-full px-5 py-3 text-sm font-medium transition-all duration-300"

@@ -107,20 +107,22 @@ export default function OverviewPage() {
         </Card>
 
         <div className="flex flex-col gap-4">
-          {/* HERMES insight */}
-          <Card className="animate-fade-in bg-gradient-to-br from-accent to-[#0E29D6] text-white shadow-lift">
+          {/* HERMES insight — sophisticated dark card */}
+          <div className="animate-fade-in rounded-2xl bg-sidebar p-5 text-white shadow-card md:p-6">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10">
+                <Sparkles className="h-3.5 w-3.5 text-[#7E91FF]" />
+              </span>
               <p className="text-sm font-semibold">{INSIGHT_MOCK.title}</p>
             </div>
-            <p className="mt-2 text-[13px] leading-relaxed text-white/85">
+            <p className="mt-3 text-[13px] leading-relaxed text-white/70">
               {INSIGHT_MOCK.text}
             </p>
-            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium">
+            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-[#9DACFF]">
               <TrendingUp className="h-3.5 w-3.5" />
               {INSIGHT_MOCK.metric}
             </span>
-          </Card>
+          </div>
 
           {/* Top content */}
           <Card className="animate-fade-in">

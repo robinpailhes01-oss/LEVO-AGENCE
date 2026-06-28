@@ -42,11 +42,11 @@
 
 @layer components {
   .levo-card {
-    @apply rounded-2xl bg-card shadow-card;
+    @apply rounded-2xl bg-card;
     box-shadow:
-      0 1px 3px rgba(16, 24, 40, 0.04),
-      0 12px 28px -12px rgba(16, 24, 40, 0.12),
-      inset 0 0 0 1px rgba(16, 24, 40, 0.04);
+      0 1px 2px rgba(16, 24, 40, 0.03),
+      0 10px 24px -14px rgba(16, 24, 40, 0.10),
+      inset 0 0 0 1px rgba(16, 24, 40, 0.035);
   }
 
   .levo-pressable {
