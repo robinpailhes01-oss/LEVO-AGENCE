@@ -11,6 +11,20 @@ Dashboard de pilotage des 4 agents IA de **Levo**, agence IA à Montpellier :
 variable d'environnement. Toutes les données sont mockées dans `lib/mock.ts`.
 Objectif : `git push` → déploiement Vercel sans aucune config.
 
+> **Vision complète (produit final) et bible de marque** dans `docs/reference/` :
+> `LEVO_VISION.md` (config produit), `AGENT_DEFINITIONS.md`, `BUILD_METHODS.md`
+> (méthodes Penser→Planifier→Construire→Vérifier→Tester→Livrer + Confusion
+> Protocol : ne jamais deviner une décision d'archi/design, demander),
+> `CAROUSEL_DESIGN.md` et `LUNA_SYSTEM_PROMPT.md` (charte contenu LUNA).
+> À lire avant toute évolution de fond.
+
+## Marque Levo (référence)
+
+Site de référence : levo-plum.vercel.app · ton premium, calme, confiant.
+Palette marque : Crème `#F0EDE6` · Navy `#0D1117` · Vert forêt `#1A2E1A` ·
+Noir `#1A1A1A` · Bleu accent `#1A3BFF` (accents uniquement, jamais en fond).
+Le dashboard actuel utilise un fond Bankio `#ECEEF8` (à arbitrer vs crème marque).
+
 ## Stack
 
 Next.js 14 (App Router) · TypeScript · Tailwind · UI type shadcn.
