@@ -1,106 +1,80 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import type { AgentMeta } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
+import type { AgentMock, AgentStatus } from "@/lib/mock";
 
-export type AgentStatus = "active" | "idle" | "working";
-
-const STATUS_LABEL: Record<AgentStatus, string> = {
-  active: "Actif",
-  idle: "En veille",
-  working: "Au travail",
+const STATUS: Record<AgentStatus, { label: string; color: string }> = {
+  active: { label: "Actif", color: "#1D9E75" },
+  working: { label: "Au travail", color: "#E08A1E" },
+  idle: { label: "En veille", color: "#9AA3AF" },
 };
 
-const STATUS_COLOR: Record<AgentStatus, string> = {
-  active: "#1D9E75",
-  idle: "#9AA3AF",
-  working: "#1A3BFF",
-};
-
-export interface AgentCardProps {
-  agent: AgentMeta;
-  href: string;
-  status: AgentStatus;
-  lastAction: string;
-  stat: { value: string; label: string };
+/** Soft tint of the agent color for the speech bubble. */
+function tint(hex: string): string {
+  return `${hex}12`;
 }
 
-export function AgentCard({
-  agent,
-  href,
-  status,
-  lastAction,
-  stat,
-}: AgentCardProps) {
+export function AgentCard({ agent }: { agent: AgentMock }) {
+  const status = STATUS[agent.status];
+
   return (
     <div
-      className="levo-card flex flex-col p-5 transition-shadow hover:shadow-lift"
+      className="flex w-[min(85vw,320px)] shrink-0 flex-col rounded-2xl bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift md:w-auto"
       style={{ borderTop: `3px solid ${agent.color}` }}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         <div className="relative">
           <Image
             src={agent.avatar}
             alt={agent.name}
-            width={52}
-            height={52}
-            className="rounded-full"
+            width={72}
+            height={72}
+            className="h-[72px] w-[72px] rounded-full"
           />
           <span
-            className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white"
-            style={{ backgroundColor: STATUS_COLOR[status] }}
+            className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-[3px] border-white"
+            style={{ backgroundColor: status.color }}
             aria-hidden
           />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-semibold leading-tight text-ink">
+        <div className="min-w-0">
+          <p className="font-display text-xl font-semibold leading-tight text-ink">
             {agent.name}
           </p>
-          <p className="truncate text-xs text-muted">{agent.role}</p>
+          <p className="text-sm text-muted">{agent.role}</p>
+          <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: status.color }}>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+            {status.label}
+          </span>
         </div>
-        <span
-          className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-          style={{
-            backgroundColor: `${STATUS_COLOR[status]}1A`,
-            color: STATUS_COLOR[status],
-          }}
-        >
-          {STATUS_LABEL[status]}
-        </span>
       </div>
 
-      {/* speech bubble — last action */}
-      <div className="relative mt-4 rounded-xl bg-background px-3 py-2.5">
-        <span
-          className="absolute -top-1.5 left-5 h-3 w-3 rotate-45 bg-background"
-          aria-hidden
-        />
-        <p className="line-clamp-2 text-[13px] leading-snug text-ink/80">
-          {lastAction}
+      <div
+        className="mt-4 rounded-xl px-3.5 py-3"
+        style={{ backgroundColor: tint(agent.color) }}
+      >
+        <p className="text-[13px] italic leading-snug text-ink/75">
+          “{agent.speech}”
         </p>
       </div>
 
-      {/* main stat */}
-      <div className="mt-4 flex items-end justify-between">
-        <div>
-          <p
-            className="font-display text-3xl font-semibold leading-none"
-            style={{ color: agent.color }}
-          >
-            {stat.value}
-          </p>
-          <p className="mt-1 text-xs text-muted">{stat.label}</p>
-        </div>
+      <div className="mt-4">
+        <p
+          className="font-display text-3xl font-semibold leading-none"
+          style={{ color: agent.color }}
+        >
+          {agent.stat.value}
+        </p>
+        <p className="mt-1 text-xs text-muted">{agent.stat.label}</p>
       </div>
 
       <Link
-        href={href}
-        className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110 active:scale-[0.98]"
+        href={`/dashboard/${agent.key === "veille" ? "luna" : agent.key}`}
+        className="group mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110 active:scale-[0.98]"
         style={{ backgroundColor: agent.color }}
       >
         Parler à {agent.name}
-        <ArrowUpRight className="h-4 w-4" />
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
       </Link>
     </div>
   );

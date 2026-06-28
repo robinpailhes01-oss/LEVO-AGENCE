@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 import { Logo } from "@/components/layout/Logo";
 
@@ -24,10 +23,7 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-muted">
             Accès réservé. Entre le mot de passe du dashboard.
           </p>
-
-          <Suspense>
-            <LoginForm />
-          </Suspense>
+          <LoginForm />
         </div>
 
         <p className="mt-6 text-center text-xs text-muted/70">

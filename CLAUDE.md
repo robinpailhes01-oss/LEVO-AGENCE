@@ -1,63 +1,54 @@
-# CLAUDE.md — Levo Dashboard
+# CLAUDE.md — Levo Dashboard (démo visuelle)
 
 Guide pour toute session Claude Code travaillant sur ce repo.
 
 ## Projet
 
-Dashboard unique de pilotage des 4 agents IA de **Levo**, agence IA à Montpellier.
-Ce n'est PAS un site vitrine — uniquement le cockpit agents.
+Dashboard de pilotage des 4 agents IA de **Levo**, agence IA à Montpellier :
+**LUNA** (contenu), **ORION** (leads), **HERMES** (analytics), **VEILLE** (veille).
 
-Agents : **LUNA** (contenu/carrousels), **ORION** (prospection/leads),
-**HERMES** (analytics/rapports), **VEILLE** (veille concurrentielle).
+⚠️ **Version 100% visuelle pour l'instant.** Aucun backend, aucune API, aucune
+variable d'environnement. Toutes les données sont mockées dans `lib/mock.ts`.
+Objectif : `git push` → déploiement Vercel sans aucune config.
 
 ## Stack
 
-- Next.js 14 (App Router) · TypeScript strict · Tailwind · shadcn-style UI
-- Supabase (Postgres + RLS) via service-role key, server-side uniquement
-- Anthropic Claude (raisonnement agents) — toujours server-side
-- Déploiement Vercel (+ cron HERMES)
+Next.js 14 (App Router) · TypeScript · Tailwind · UI type shadcn.
 
-## Règles non négociables
+## Règles
 
-1. **TypeScript strict, jamais `any`.** `noUncheckedIndexedAccess` activé.
-2. **Aucun secret en dur.** Tout passe par `lib/env.ts` (`process.env`).
-3. **Toute la donnée vit dans Supabase.** Jamais de `localStorage`.
-4. **Appels Claude uniquement côté serveur** (`lib/claude.ts`).
-5. **Gestion d'erreur sur tout appel externe** (`withHandler`, `safe`).
-6. **Mobile responsive** — bottom nav `<MobileNav>` sur mobile.
-7. **Pas de TODO livré.** Commit propre après chaque phase.
+1. **Zéro appel API, zéro `process.env`.** Tout est statique.
+2. **Toutes les données vivent dans `lib/mock.ts`.**
+3. **TypeScript propre.** `noUncheckedIndexedAccess` activé.
+4. **Mobile responsive** : sidebar → bottom nav, grilles → 1 colonne, cards agents → scroll horizontal.
+5. **Animations douces** sur les interactions (hover, active).
+6. **Build vert** (`npm run build` 100% statique).
 
 ## Carte du code
 
 | Zone | Emplacement |
 | --- | --- |
-| Env typé | `lib/env.ts` |
-| Auth (cookie HMAC Edge) | `lib/auth.ts`, `middleware.ts`, `app/api/auth` |
-| Supabase | `lib/supabase/{server,client}.ts` |
-| Données (lecture RSC) | `lib/queries.ts` |
-| Claude | `lib/claude.ts`, prompts dans `prompts/` |
-| Logs d'activité | `lib/log.ts` → table `agent_logs` |
-| MCP (Bearer) | `lib/mcp.ts`, `app/api/mcp/*` |
-| Agents (actions UI) | `app/api/{luna,orion,hermes}/*` |
-| Overview (priorité visuelle) | `app/dashboard/page.tsx`, `components/overview/*` |
-| Schéma SQL | `docs/schema.sql` (+ `docs/seed.sql`) |
+| Données mockées | `lib/mock.ts` |
+| Navigation | `lib/nav.ts` |
+| Helpers (cn…) | `lib/utils.ts` |
+| Layout (sidebar, header, bottom nav) | `components/layout/*` |
+| Overview | `app/dashboard/page.tsx`, `components/overview/*` |
+| LUNA / ORION | `components/luna/*`, `components/orion/*` |
+| Pages | `app/dashboard/*` |
+| UI primitives | `components/ui/*` |
+| Avatars | `public/avatars/*.png` (`scripts/gen-avatars.mjs`) |
 
 ## Palette / typo
 
-Fond `#ECEEF8` · cards `#FFFFFF` · accent `#1A3BFF` · texte `#1A1A1A` · sidebar `#0D1117`.
+Fond `#ECEEF8` · cards `#FFFFFF` (radius 16px) · accent `#1A3BFF` · texte `#1A1A1A` · sidebar `#0D1117`.
 Agents : LUNA `#1A3BFF`, ORION `#1D9E75`, HERMES `#BA7517`, VEILLE `#7B2FBE`.
 Titres = Cormorant Garamond, corps = Inter.
 
 ## Commandes
 
 ```bash
-npm run dev         # dev local
-npm run build       # build prod (doit rester vert)
-npm run typecheck   # tsc --noEmit
-node scripts/gen-avatars.mjs   # régénère les avatars
+npm run dev
+npm run build
+npm run typecheck
+node scripts/gen-avatars.mjs
 ```
-
-## Vérifs avant commit
-
-- `npm run typecheck` et `npm run build` passent.
-- Aucun secret committé. Pas de `any`. Pas de TODO.

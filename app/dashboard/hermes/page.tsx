@@ -1,68 +1,113 @@
-import { WeeklyReport } from "@/components/hermes/WeeklyReport";
-import { GenerateReportButton } from "@/components/hermes/GenerateReportButton";
-import { Badge } from "@/components/ui/badge";
-import { getReports } from "@/lib/queries";
+import { FileBarChart, ThumbsUp, ThumbsDown, Target } from "lucide-react";
+import {
+  HERMES_KPIS,
+  HERMES_WORKED,
+  HERMES_NOT_WORKED,
+  HERMES_ACTIONS,
+} from "@/lib/mock";
 
-export const dynamic = "force-dynamic";
-
-export default async function HermesPage() {
-  const reports = await getReports();
-  const latest = reports[0];
-  const history = reports.slice(1);
-
+export default function HermesPage() {
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-semibold text-ink">
-            Rapports hebdomadaires
-          </h2>
+          <h1 className="font-display text-2xl font-semibold text-ink">
+            HERMES — Analytics
+          </h1>
           <p className="text-sm text-muted">
-            HERMES synthétise la semaine chaque lundi 8h — ou à la demande.
+            Rapport de la semaine du 22 au 28 juin.
           </p>
         </div>
-        <GenerateReportButton />
+        <button className="inline-flex items-center gap-2 rounded-xl bg-hermes px-4 py-2.5 text-sm font-medium text-white shadow-soft transition-all hover:brightness-110 active:scale-[0.98]">
+          <FileBarChart className="h-4 w-4" />
+          Générer rapport
+        </button>
       </div>
 
-      {!latest ? (
-        <div className="levo-card p-8 text-center">
-          <p className="text-sm text-muted">
-            Aucun rapport pour l'instant. Lance la première génération.
-          </p>
-        </div>
-      ) : (
-        <div className="levo-card p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold text-ink">
-              Semaine du {latest.week_start} au {latest.week_end}
-            </h3>
-            <Badge tone={latest.sent_at ? "green" : "neutral"}>
-              {latest.sent_at ? "Envoyé" : "Enregistré"}
-            </Badge>
+      {/* KPIs */}
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {HERMES_KPIS.map((kpi) => (
+          <div
+            key={kpi.label}
+            className="rounded-2xl bg-card p-5 shadow-soft transition-shadow hover:shadow-card"
+          >
+            <p className="text-xs text-muted">{kpi.label}</p>
+            <p className="mt-2 font-display text-2xl font-semibold text-ink">
+              {kpi.value}
+            </p>
+            <p
+              className={`mt-1 text-xs font-medium ${
+                kpi.direction === "up" ? "text-success" : "text-danger"
+              }`}
+            >
+              {kpi.direction === "up" ? "▲" : "▼"} {kpi.trend}
+            </p>
           </div>
-          <WeeklyReport markdown={latest.content_md ?? "_Rapport vide._"} />
-        </div>
-      )}
+        ))}
+      </section>
 
-      {history.length > 0 && (
-        <div>
-          <h3 className="mb-2 font-display text-lg font-semibold text-ink">
-            Historique
-          </h3>
-          <div className="space-y-2">
-            {history.map((r) => (
-              <details key={r.id} className="levo-card p-4">
-                <summary className="cursor-pointer text-sm font-medium text-ink">
-                  Semaine du {r.week_start} au {r.week_end}
-                </summary>
-                <div className="mt-3 border-t border-line/60 pt-3">
-                  <WeeklyReport markdown={r.content_md ?? "_Rapport vide._"} />
-                </div>
-              </details>
-            ))}
+      {/* Worked / not worked */}
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="rounded-2xl bg-card p-5 shadow-card">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
+              <ThumbsUp className="h-4 w-4" />
+            </span>
+            <h2 className="font-display text-lg font-semibold text-ink">
+              Ce qui a marché
+            </h2>
           </div>
+          <ul className="mt-3 space-y-2">
+            {HERMES_WORKED.map((item, i) => (
+              <li key={i} className="flex gap-2 text-sm text-ink/80">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
+
+        <div className="rounded-2xl bg-card p-5 shadow-card">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-danger/10 text-danger">
+              <ThumbsDown className="h-4 w-4" />
+            </span>
+            <h2 className="font-display text-lg font-semibold text-ink">
+              Ce qui n'a pas marché
+            </h2>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {HERMES_NOT_WORKED.map((item, i) => (
+              <li key={i} className="flex gap-2 text-sm text-ink/80">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-danger" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Recommended actions */}
+      <section className="rounded-2xl bg-card p-5 shadow-card">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
+            <Target className="h-4 w-4" />
+          </span>
+          <h2 className="font-display text-lg font-semibold text-ink">
+            Top 3 actions recommandées
+          </h2>
+        </div>
+        <ol className="mt-3 space-y-2">
+          {HERMES_ACTIONS.map((item, i) => (
+            <li key={i} className="flex items-start gap-3 text-sm text-ink/80">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">
+                {i + 1}
+              </span>
+              {item}
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
   );
 }

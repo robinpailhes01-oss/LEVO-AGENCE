@@ -1,85 +1,76 @@
-import { Badge } from "@/components/ui/badge";
-import { getClients } from "@/lib/queries";
-import { formatCurrency } from "@/lib/utils";
-import type { ClientStatus } from "@/lib/types";
+import { CLIENTS_MOCK } from "@/lib/mock";
 
-export const dynamic = "force-dynamic";
-
-const STATUS_TONE: Record<ClientStatus, "green" | "amber" | "red"> = {
-  active: "green",
-  paused: "amber",
-  churned: "red",
+const AGENT_COLOR: Record<string, string> = {
+  LUNA: "#1A3BFF",
+  ORION: "#1D9E75",
+  HERMES: "#BA7517",
+  VEILLE: "#7B2FBE",
 };
 
-const STATUS_LABEL: Record<ClientStatus, string> = {
-  active: "Actif",
-  paused: "En pause",
-  churned: "Parti",
-};
-
-export default async function ClientsPage() {
-  const clients = await getClients();
-  const active = clients.filter((c) => c.status === "active");
-  const mrr = active.reduce((s, c) => s + (c.monthly_fee ?? 0), 0);
+export default function ClientsPage() {
+  const active = CLIENTS_MOCK.filter((c) => c.status === "active").length;
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div>
-        <h2 className="font-display text-2xl font-semibold text-ink">Clients</h2>
-        <p className="text-sm text-muted">
-          {active.length} actifs · {formatCurrency(mrr)} de MRR
-        </p>
+        <h1 className="font-display text-2xl font-semibold text-ink">Clients</h1>
+        <p className="text-sm text-muted">{active} clients actifs</p>
       </div>
 
-      {clients.length === 0 ? (
-        <div className="levo-card p-8 text-center">
-          <p className="text-sm text-muted">
-            Aucun client pour l'instant. Ajoute-les via Supabase ou les outils MCP.
-          </p>
+      <div className="overflow-hidden rounded-2xl bg-card shadow-card">
+        {/* header — desktop */}
+        <div className="hidden grid-cols-12 gap-4 border-b border-line/60 px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted md:grid">
+          <span className="col-span-4">Client</span>
+          <span className="col-span-3">Secteur</span>
+          <span className="col-span-2">MRR</span>
+          <span className="col-span-2">Agent</span>
+          <span className="col-span-1 text-right">Statut</span>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {clients.map((c) => (
-            <div key={c.id} className="levo-card p-5">
-              <div className="flex items-start justify-between">
-                <div className="min-w-0">
-                  <p className="truncate font-display text-lg font-semibold text-ink">
-                    {c.name}
-                  </p>
-                  <p className="truncate text-xs text-muted">
-                    {c.company ?? c.niche ?? "—"}
-                  </p>
-                </div>
-                <Badge tone={STATUS_TONE[c.status]}>
-                  {STATUS_LABEL[c.status]}
-                </Badge>
+
+        <ul className="divide-y divide-line/60">
+          {CLIENTS_MOCK.map((c) => (
+            <li
+              key={c.name}
+              className="grid grid-cols-1 gap-2 px-5 py-4 transition-colors hover:bg-background md:grid-cols-12 md:items-center md:gap-4"
+            >
+              <div className="col-span-4 flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-white">
+                  {c.name.slice(0, 1)}
+                </span>
+                <span className="font-medium text-ink">{c.name}</span>
               </div>
-
-              <p className="mt-4 font-display text-2xl font-semibold text-accent">
-                {formatCurrency(c.monthly_fee ?? 0)}
+              <span className="col-span-3 text-sm text-muted">{c.sector}</span>
+              <span className="col-span-2 font-display text-lg font-semibold text-accent">
+                {c.mrr}
                 <span className="ml-1 text-xs font-normal text-muted">/mois</span>
-              </p>
-
-              {c.services.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {c.services.map((s) => (
-                    <span
-                      key={s}
-                      className="rounded-full bg-background px-2 py-0.5 text-[11px] text-muted"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {c.instagram_handle && (
-                <p className="mt-3 text-xs text-muted">{c.instagram_handle}</p>
-              )}
-            </div>
+              </span>
+              <span className="col-span-2">
+                <span
+                  className="inline-flex items-center gap-1.5 text-sm font-medium"
+                  style={{ color: AGENT_COLOR[c.agent] ?? "#1A1A1A" }}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: AGENT_COLOR[c.agent] ?? "#1A1A1A" }}
+                  />
+                  {c.agent}
+                </span>
+              </span>
+              <span className="col-span-1 md:text-right">
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    c.status === "active"
+                      ? "bg-success/10 text-success"
+                      : "bg-muted/10 text-muted"
+                  }`}
+                >
+                  {c.status === "active" ? "Actif" : "Inactif"}
+                </span>
+              </span>
+            </li>
           ))}
-        </div>
-      )}
+        </ul>
+      </div>
     </div>
   );
 }
