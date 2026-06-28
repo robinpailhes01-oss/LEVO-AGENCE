@@ -21,9 +21,16 @@ Objectif : `git push` → déploiement Vercel sans aucune config.
 ## Marque Levo (référence)
 
 Site de référence : levo-plum.vercel.app · ton premium, calme, confiant.
-Palette marque : Crème `#F0EDE6` · Navy `#0D1117` · Vert forêt `#1A2E1A` ·
-Noir `#1A1A1A` · Bleu accent `#1A3BFF` (accents uniquement, jamais en fond).
-Le dashboard actuel utilise un fond Bankio `#ECEEF8` (à arbitrer vs crème marque).
+Inspirations validées : **limova.ai** (pill, whitespace, dégradés subtils) et la
+densité data-viz d'eGrow (Dribbble).
+
+**Palette dashboard (validée) :** Fond **crème `#F0EDE6`** · cards `#FFFFFF` ·
+sidebar navy `#0D1117` · accent bleu `#1A3BFF`. Agents : LUNA `#1A3BFF`,
+ORION `#1D9E75`, HERMES `#BA7517`, VEILLE `#7B2FBE`.
+
+**Typographie (validée, style Apple) :** `Inter Tight` (titres + grands chiffres,
+proche de SF Pro) + `Inter` (corps). ⚠️ Le serif Cormorant a été **abandonné**
+sur demande de Robin — ne pas le réintroduire sans validation.
 
 ## Stack
 
@@ -54,9 +61,10 @@ Next.js 14 (App Router) · TypeScript · Tailwind · UI type shadcn.
 
 ## Palette / typo
 
-Fond `#ECEEF8` · cards `#FFFFFF` (radius 16px) · accent `#1A3BFF` · texte `#1A1A1A` · sidebar `#0D1117`.
+Fond crème `#F0EDE6` · cards `#FFFFFF` (radius ~20px) · accent `#1A3BFF` · texte `#1A1A1A` · sidebar `#0D1117`.
 Agents : LUNA `#1A3BFF`, ORION `#1D9E75`, HERMES `#BA7517`, VEILLE `#7B2FBE`.
-Titres = Cormorant Garamond, corps = Inter.
+Titres + grands chiffres = **Inter Tight** (style Apple/SF Pro), corps = Inter.
+Cartes/boutons : ombres ultra-douces, boutons pill, anneaux d'avatar fins (pas de halo), bulles gris neutre.
 
 ## Commandes
 

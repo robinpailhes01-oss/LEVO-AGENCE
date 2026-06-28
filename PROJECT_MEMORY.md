@@ -2,49 +2,67 @@
 
 *Claude Code lit ce fichier au début de chaque session et le met à jour à la fin.*
 
+*Dernière mise à jour : 2026-06-29 — session « dashboard visuel premium ».*
+
 ---
 
 ## État du projet
-- Phase actuelle : **Démo visuelle du dashboard** (Phase 2 « skeleton » du MASTER_PLAN, en version 100% mockée).
-- Dernière session (2026-06-28) : dashboard visuel complet, rebrandé crème `#F0EDE6` (marque Levo + inspiration limova.ai), bible de marque importée dans `docs/reference/`.
-- Prochaine action probable : intégrer les avatars réels, puis (si validé) brancher le backend du MASTER_PLAN (Supabase + MCP + agents).
+- Phase actuelle : **Dashboard visuel premium, terminé et en ligne** (Phase 2 « skeleton » du MASTER_PLAN, en version 100% mockée).
+- Déploiement : `levo-agence.vercel.app` (auto-deploy sur push de la branche `claude/levo-dashboard-setup-0mbsm3`).
+- 100% statique, **zéro backend / zéro variable d'env**. Données mockées dans `lib/mock.ts`.
+- **Les 4 avatars réels sont en place** (`public/avatars/{luna,orion,hermes,veille}.png`, PNG 1254×1254).
+- Prochaine étape possible : enrichir les pages internes au niveau de l'Overview, ou (plus tard) brancher le backend du MASTER_PLAN.
 
 ---
 
-## Décisions d'architecture prises
-- **Version actuelle = 100% visuelle, zéro backend / zéro env** (choix de Robin « git push → voir le dashboard »). Données mockées dans `lib/mock.ts`.
-- Fond du dashboard : **crème `#F0EDE6`** (arbitré avec Robin, aligné marque, vs `#ECEEF8` Bankio initial).
-- Boutons pill + cercles dégradés subtils (inspiration limova.ai).
-- Couleurs agents conservées : LUNA bleu / ORION vert / HERMES ambre / VEILLE violet.
-- Une 1re itération avec backend (Supabase/Claude/auth/MCP, conforme au MASTER_PLAN) avait été construite puis retirée sur demande — **récupérable dans l'historique git** pour la suite.
-- Réfs produit complètes dans `docs/reference/` : MASTER_PLAN, AGENT_DEFINITIONS, BUILD_METHODS, CAROUSEL_DESIGN, LUNA_SYSTEM_PROMPT, LEVO_VISION.
+## Décisions de design prises (validées par Robin)
+- **Fond crème marque `#F0EDE6`** (choisi vs `#ECEEF8` Bankio) — aligné site levo-plum + charte. Sidebar navy `#0D1117`, accent bleu `#1A3BFF`.
+- **Typographie façon Apple** : `Inter Tight` (display, proche de SF Pro) pour titres + grands chiffres, `Inter` (corps). **Le serif Cormorant a été abandonné** sur demande de Robin (« plus style Apple »). Fallback `-apple-system`. Chiffres en figures alignées + tabulaires.
+- **Inspiration limova.ai** : boutons **pill**, **cercles dégradés** subtils en fond (bleu/violet), whitespace généreux.
+- **Passe « Apple » (retenue)** :
+  - Avatars : **pas de halo lumineux** → anneau fin (couleur agent) + ombre douce. Portrait 88px, crop visage `objectPosition: 50% 26%`.
+  - **Bulles de dialogue en gris neutre** (type iMessage), plus de teinte colorée.
+  - **Carte Insight HERMES en sombre navy** (sophistiqué), plus de bleu vif.
+  - **Ombres ultra-douces** (card/lift), hairlines légers.
+- **Data-viz** (eGrow/Dribbble) : sparklines sous les KPIs, **graphique Performance** multi-séries, **donut** sources, **funnel** de conversion. Tout en **SVG pur, zéro dépendance**.
+- **Animations de chargement** des graphiques (tracé progressif via `pathLength=1`, barres `scaleX`, donut reveal), en CSS pur, respectant `prefers-reduced-motion`.
+- **Labels éditoriaux** (`.eyebrow`, caps + letter-spacing) au-dessus de chaque section.
+- **Palette graphique resserrée** : funnel bleu monochrome, donut bleu→violet analogue (pas d'arc-en-ciel).
+- **Couleurs d'identité agents conservées** : LUNA `#1A3BFF`, ORION `#1D9E75`, HERMES `#BA7517`, VEILLE `#7B2FBE`.
+  - ⚠️ HERMES ambre est légèrement orangé alors que la charte dit « zéro orange ». Conservé (couleur d'origine + colle au fond jaune de sa photo). À ré-arbitrer si Robin veut un ton plus brand.
 
 ---
 
 ## Patterns établis
-- Toutes les données mockées vivent dans `lib/mock.ts` (un seul point de vérité visuel).
-- Design tokens dans `tailwind.config.ts` (palette marque, ombres en couches, easing) + utilitaires dans `app/globals.css` (`.levo-card`, `.frost`, `.agent-cta`, `.stagger`).
-- Pages = Server Components statiques ; interactions = CSS/hover (pas de fetch).
-- Composants : `components/layout/*` (Sidebar, Header, MobileNav, PageHeader, Logo), `components/overview|luna|orion|hermes/*`, `components/ui/*`.
-- TypeScript strict, jamais de `any`. Build 100% statique, vert sans aucune variable d'env.
+- Toutes les données mockées : **`lib/mock.ts`** (point de vérité unique).
+- Design tokens : `tailwind.config.ts` (palette, ombres, easing `smooth`/`spring`, tracking `tightest`/`apple-tight`).
+- Utilitaires CSS dans `app/globals.css` : `.levo-card`, `.frost`, `.agent-cta` (tint→fill au hover via `--agent`), `.eyebrow`, `.stagger`, `.chart-line|area|bar|ring|dot`.
+- Graphiques réutilisables : `components/charts/{Sparkline,TrendChart,Donut,Funnel}.tsx` (SVG, Server Components).
+- Layout : `components/layout/{Sidebar,Header,MobileNav,PageHeader,Logo}`. Pages = Server Components statiques ; interactions = CSS/hover (pas de fetch).
+- Avatars affichés via `next/image` (object-cover, ring couleur agent). TS strict, jamais de `any`. Build statique vert sans env.
 
 ---
 
-## Pièges rencontrés
-- TS 5.7 a durci les génériques `Uint8Array`/`BufferSource` (rencontré sur l'ancien `lib/auth.ts`).
-- Le projet Supabase cible `yzaypsoonsldhmujuqjw` n'est pas accessible via MCP depuis ces sessions → SQL livré à exécuter à la main quand le backend reviendra.
-- Les images jointes au chat ne sont pas accessibles comme fichiers → pour pousser des avatars il faut une URL/Drive (pas une pièce jointe chat).
+## Pièges rencontrés (IMPORTANT)
+- **Upload d'images via GitHub web** : l'étape **« rename » après upload casse tout** — le fichier se retrouve à la racine (`/luna.png`), dans `public/` (`public/orion.png`), ou est **vidé à 2 octets** (veille). 
+  - ✅ **Méthode fiable** : renommer le fichier (`orion.png`…) **sur l'appareil AVANT**, entrer dans le dossier `public/avatars/` sur GitHub, puis **Add file → Upload files** (sans aucun rename). Ou passer par Google Drive et laisser Claude placer les fichiers.
+  - 🛟 **Récupération** : les fichiers mal placés/vidés se récupèrent dans l'historique git (`git ls-tree`, `git cat-file blob <hash> > dest`), puis `git mv` au bon endroit.
+- **`next/image` met en cache** les images optimisées sur un serveur lancé : si un avatar change sur le disque, un `next start` déjà actif sert l'ancienne version. → `rm -rf .next && next build` pour rafraîchir en preview locale. (Aucun impact sur Vercel qui build à neuf.)
+- **Avatar « bille » côté Vercel après upload** = simple **cache navigateur** → force-refresh / navigation privée.
+- **Build local** : `pkill` d'un serveur de fond dans la même commande compound peut faire sortir le shell en code 144 → lancer `next build` seul.
+- TS 5.7 a durci les génériques `Uint8Array`/`BufferSource` (vu sur l'ancien backend).
 
 ---
 
 ## À faire prochaine session
-1. Intégrer les 4 avatars réels (`public/avatars/{luna,orion,hermes,veille}.png`).
-2. (Optionnel) Aligner les colonnes mock ORION sur le pipeline MASTER_PLAN (Nouveau → Contacté → Répondu → Qualifié → Proposition → Gagné/Perdu) et thèmes LUNA (cas_client/hook_probleme/educatif/solution/methode).
-3. Si Robin valide le passage au réel : rebrancher le backend du MASTER_PLAN (Supabase + MCP + API agents) depuis l'historique git.
+1. (Option) Enrichir pages internes (LUNA kanban, ORION pipeline, HERMES, Clients) au niveau de l'Overview : mini-graphes, mêmes finitions Apple.
+2. (Option) Animer plus finement (compteurs de chiffres, hover graphes).
+3. (Plus tard) Passage au réel : rebrancher le backend du MASTER_PLAN (Supabase + MCP + API agents) — récupérable dans l'historique git (1re itération supprimée lors du pivot « visuel »).
 
 ---
 
 ## Notes importantes
-- Site existant / référence visuelle : levo-plum.vercel.app · inspiration : limova.ai
-- Robin valide les décisions importantes (Confusion Protocol — BUILD_METHODS).
-- Robin fournit les clés API au fur et à mesure des besoins (aucune en dur dans le code).
+- Réfs produit complètes dans `docs/reference/` : MASTER_PLAN, AGENT_DEFINITIONS, BUILD_METHODS, CAROUSEL_DESIGN, LUNA_SYSTEM_PROMPT, LEVO_VISION.
+- Site / réf visuelle : levo-plum.vercel.app · inspiration : limova.ai · densité data-viz : eGrow (Dribbble).
+- Robin valide les décisions importantes (Confusion Protocol). Aucune clé en dur ; tout via env le jour du backend.
+- Outil de preview interne : `scripts/shot.mjs` (Playwright, gitignored — spécifique à l'environnement).
