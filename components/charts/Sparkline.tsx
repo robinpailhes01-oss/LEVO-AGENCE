@@ -53,7 +53,7 @@ export function Sparkline({
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={area} fill={`url(#spark-${id})`} />
+      <path d={area} fill={`url(#spark-${id})`} className="chart-area" />
       <path
         d={line}
         fill="none"
@@ -61,6 +61,8 @@ export function Sparkline({
         strokeWidth={2}
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
+        pathLength={1}
+        className="chart-line"
       />
     </svg>
   );

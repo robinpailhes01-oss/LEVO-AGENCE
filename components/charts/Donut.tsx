@@ -20,7 +20,7 @@ export function Donut({
 
   return (
     <div className="flex items-center gap-5">
-      <div className="relative shrink-0">
+      <div className="chart-ring relative shrink-0">
         <svg viewBox="0 0 140 140" className="h-[140px] w-[140px] -rotate-90">
           <circle cx="70" cy="70" r={R} fill="none" stroke="#1A1A1A" strokeOpacity={0.05} strokeWidth={stroke} />
           {segments.map((seg) => {

@@ -28,9 +28,10 @@ export function Funnel({ stages }: { stages: FunnelStage[] }) {
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-ink/[0.05]">
               <div
-                className="h-full rounded-full transition-all duration-500 ease-smooth"
+                className="chart-bar h-full rounded-full"
                 style={{
                   width: `${widthPct}%`,
+                  animationDelay: `${i * 0.09}s`,
                   background: `linear-gradient(90deg, ${stage.color}, ${stage.color}bb)`,
                 }}
               />

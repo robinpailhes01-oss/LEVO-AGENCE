@@ -92,9 +92,15 @@ export function TrendChart({
           const pts = s.data.map((v, idx) => ({ x: xAt(idx), y: yAt(v) }));
           const line = smooth(pts);
           const area = `${line} L ${pts[pts.length - 1]!.x},${H - padBottom} L ${pts[0]!.x},${H - padBottom} Z`;
+          const delay = `${i * 0.18}s`;
           return (
             <g key={s.name}>
-              <path d={area} fill={`url(#trend-${i})`} />
+              <path
+                d={area}
+                fill={`url(#trend-${i})`}
+                className="chart-area"
+                style={{ animationDelay: delay }}
+              />
               <path
                 d={line}
                 fill="none"
@@ -102,6 +108,9 @@ export function TrendChart({
                 strokeWidth={2.5}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
+                pathLength={1}
+                className="chart-line"
+                style={{ animationDelay: delay }}
               />
               <circle
                 cx={pts[pts.length - 1]!.x}
@@ -111,6 +120,8 @@ export function TrendChart({
                 stroke={s.color}
                 strokeWidth={2.5}
                 vectorEffect="non-scaling-stroke"
+                className="chart-dot"
+                style={{ animationDelay: `${0.9 + i * 0.18}s` }}
               />
             </g>
           );
