@@ -6,6 +6,7 @@ import type {
   ContentItem,
   ContentSlide,
   Lead,
+  Setting,
   WeeklyReport,
 } from "@/lib/types";
 
@@ -113,6 +114,17 @@ export function getReports(): Promise<WeeklyReport[]> {
       .order("week_start", { ascending: false });
     if (error) throw error;
     return (data ?? []) as WeeklyReport[];
+  }, []);
+}
+
+export function getSettings(): Promise<Setting[]> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("settings")
+      .select("*")
+      .order("key", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as Setting[];
   }, []);
 }
 

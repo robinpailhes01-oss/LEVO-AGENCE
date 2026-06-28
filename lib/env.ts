@@ -49,6 +49,11 @@ export const serverEnv = {
   get mcpSecret(): string {
     return required("LEVO_MCP_SECRET", process.env.LEVO_MCP_SECRET);
   },
+  get cronSecret(): string {
+    // Vercel Cron sends Authorization: Bearer <CRON_SECRET>. Fall back to the
+    // MCP secret so a single secret works if CRON_SECRET isn't set separately.
+    return process.env.CRON_SECRET ?? process.env.LEVO_MCP_SECRET ?? "";
+  },
   get resendApiKey(): string | undefined {
     return process.env.RESEND_API_KEY;
   },
