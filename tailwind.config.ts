@@ -33,11 +33,24 @@ const config: Config = {
         danger: "#E5484D",
       },
       fontFamily: {
-        display: ["var(--font-cormorant)", "Georgia", "serif"],
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: [
+          "var(--font-display)",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "sans-serif",
+        ],
+        sans: [
+          "var(--font-inter)",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       letterSpacing: {
-        tightest: "-0.03em",
+        tightest: "-0.022em",
+        "apple-tight": "-0.035em",
       },
       borderRadius: {
         xl: "0.875rem",

@@ -27,7 +27,7 @@ export default function OverviewPage() {
       <header className="flex flex-wrap items-end justify-between gap-3 animate-fade-in">
         <div>
           <p className="text-[13px] font-medium capitalize text-muted">{todayLabel()}</p>
-          <h1 className="mt-1 font-display text-[34px] font-semibold leading-tight tracking-tightest text-ink md:text-[40px]">
+          <h1 className="mt-1 font-display text-[34px] font-bold leading-[1.05] tracking-apple-tight text-ink md:text-[42px]">
             Bonjour Robin <span className="inline-block">👋</span>
           </h1>
         </div>
