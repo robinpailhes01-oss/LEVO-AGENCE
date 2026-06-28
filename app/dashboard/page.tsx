@@ -76,7 +76,7 @@ export default function OverviewPage() {
                   </p>
                   <p className="truncate text-xs text-muted">{post.meta}</p>
                 </div>
-                <button className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white shadow-soft transition-all hover:brightness-110 active:scale-95">
+                <button className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-medium text-white shadow-soft transition-all hover:brightness-110 active:scale-95">
                   Valider
                 </button>
               </div>

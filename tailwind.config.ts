@@ -10,22 +10,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Levo palette — refined
-        background: "#ECEEF8",
-        surface: "#F4F5FB",
+        // Levo brand palette — crème + navy + blue accent (cf. docs/reference)
+        background: "#F0EDE6",
+        surface: "#F6F3EC",
+        cream: "#F0EDE6",
+        forest: "#1A2E1A",
         card: "#FFFFFF",
         accent: "#1A3BFF",
         "accent-soft": "#4E66FF",
-        ink: "#16181D",
-        sidebar: "#0B0D12",
+        ink: "#1A1A1A",
+        sidebar: "#0D1117",
         // Agent accents
         luna: "#1A3BFF",
         orion: "#1D9E75",
         hermes: "#BA7517",
         veille: "#7B2FBE",
         // Functional
-        muted: "#71757E",
-        line: "#E6E8F0",
+        muted: "#7A766C",
+        line: "#E4DFD3",
         success: "#1D9E75",
         warning: "#BA7517",
         danger: "#E5484D",

@@ -19,13 +19,11 @@
 
   body {
     @apply bg-background text-ink font-sans antialiased;
-    /* very subtle depth, Apple-like */
-    background-image: radial-gradient(
-      120% 80% at 50% -10%,
-      #f3f4fb 0%,
-      #ecedf7 45%,
-      #e8eaf5 100%
-    );
+    /* warm crème depth + limova-style gradient circles */
+    background-image:
+      radial-gradient(38% 30% at 86% 6%, rgba(26, 59, 255, 0.06), transparent 70%),
+      radial-gradient(34% 26% at 6% 94%, rgba(123, 47, 190, 0.05), transparent 70%),
+      radial-gradient(120% 90% at 50% -10%, #f7f4ed 0%, #f1eee6 45%, #efeae0 100%);
     background-attachment: fixed;
   }
 
@@ -67,7 +65,7 @@
 
 @layer utilities {
   .frost {
-    background-color: rgba(236, 238, 248, 0.72);
+    background-color: rgba(241, 238, 230, 0.72);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }

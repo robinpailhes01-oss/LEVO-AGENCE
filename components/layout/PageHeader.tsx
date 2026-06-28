@@ -32,7 +32,7 @@ export function ActionButton({
 }) {
   return (
     <button
-      className="levo-pressable inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110"
+      className="levo-pressable inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110"
       style={{
         backgroundColor: color,
         boxShadow: `0 10px 24px -10px ${color}99`,

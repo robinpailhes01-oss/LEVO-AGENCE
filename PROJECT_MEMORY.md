@@ -24,8 +24,10 @@ aucune variable d'environnement. Toutes les données sont mockées dans
 
 ## Design
 
-- Bankio-like : fond `#ECEEF8`, cards blanches radius 16px, soft shadows.
-- Accent `#1A3BFF`, sidebar `#0D1117`, accents agents (bleu/vert/ambre/violet).
+- **Fond crème marque `#F0EDE6`** (aligné site levo-plum + `docs/reference/CAROUSEL_DESIGN.md`), cards blanches, soft shadows en couches.
+- Inspiration **limova.ai** : boutons pill, whitespace généreux, cercles dégradés décoratifs subtils en fond, transitions douces.
+- Accent `#1A3BFF`, sidebar navy `#0D1117`, accents agents (bleu/vert/ambre/violet).
+- Bible de marque importée dans `docs/reference/` (CAROUSEL_DESIGN, AGENT_DEFINITIONS, BUILD_METHODS, LUNA_SYSTEM_PROMPT, LEVO_VISION).
 - Cormorant Garamond (titres + grands chiffres), Inter (corps).
 - Responsive : sidebar → bottom nav mobile, grilles → 1 colonne, cards agents → scroll horizontal.
 - Micro-interactions hover/active sur cards et boutons.
