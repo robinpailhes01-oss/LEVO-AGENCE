@@ -10,6 +10,14 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 const encoder = new TextEncoder();
 
+/** Copy into a fresh ArrayBuffer-backed view (satisfies BufferSource under TS 5.7+). */
+function buf(input: string | Uint8Array): Uint8Array<ArrayBuffer> {
+  const src = typeof input === "string" ? encoder.encode(input) : input;
+  const out = new Uint8Array(src.byteLength);
+  out.set(src);
+  return out;
+}
+
 function base64url(bytes: Uint8Array): string {
   let bin = "";
   for (const b of bytes) bin += String.fromCharCode(b);
@@ -27,7 +35,7 @@ function fromBase64url(str: string): Uint8Array {
 async function hmacKey(): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
-    encoder.encode(serverEnv.authSecret),
+    buf(serverEnv.authSecret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"],
@@ -52,7 +60,7 @@ export async function createSession(subject = "owner"): Promise<string> {
   };
   const body = base64url(encoder.encode(JSON.stringify(payload)));
   const key = await hmacKey();
-  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(body));
+  const sig = await crypto.subtle.sign("HMAC", key, buf(body));
   return `${body}.${base64url(new Uint8Array(sig))}`;
 }
 
@@ -69,8 +77,8 @@ export async function verifySession(
     const valid = await crypto.subtle.verify(
       "HMAC",
       key,
-      fromBase64url(sig),
-      encoder.encode(body),
+      buf(fromBase64url(sig)),
+      buf(body),
     );
     if (!valid) return null;
     const payload = JSON.parse(
