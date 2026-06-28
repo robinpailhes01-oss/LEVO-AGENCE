@@ -1,10 +1,17 @@
 import { FileBarChart, ThumbsUp, ThumbsDown, Target } from "lucide-react";
 import { PageHeader, ActionButton } from "@/components/layout/PageHeader";
+import { TrendChart } from "@/components/charts/TrendChart";
+import { Donut } from "@/components/charts/Donut";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   HERMES_KPIS,
   HERMES_WORKED,
   HERMES_NOT_WORKED,
   HERMES_ACTIONS,
+  PERF_SERIES,
+  PERF_LABELS,
+  LEAD_SOURCES,
 } from "@/lib/mock";
 
 export default function HermesPage() {
@@ -43,6 +50,27 @@ export default function HermesPage() {
             </p>
           </div>
         ))}
+      </section>
+
+      {/* Performance chart + channel mix */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Vue d'ensemble</CardTitle>
+            <Badge tone="blue">8 semaines</Badge>
+          </CardHeader>
+          <CardContent>
+            <TrendChart series={PERF_SERIES} labels={PERF_LABELS} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Mix de canaux</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <Donut segments={LEAD_SOURCES} centerLabel="leads" />
+          </CardContent>
+        </Card>
       </section>
 
       {/* Worked / not worked */}

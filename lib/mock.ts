@@ -67,6 +67,7 @@ export interface KpiMock {
   direction: "up" | "down" | "flat";
   icon: "euro" | "users" | "image" | "heart";
   accent: string;
+  spark: number[];
 }
 
 export const KPIS_MOCK: KpiMock[] = [
@@ -77,6 +78,7 @@ export const KPIS_MOCK: KpiMock[] = [
     direction: "up",
     icon: "euro",
     accent: "#1A3BFF",
+    spark: [2100, 2300, 2250, 2600, 2800, 2750, 3100, 3500],
   },
   {
     label: "Leads actifs",
@@ -85,6 +87,7 @@ export const KPIS_MOCK: KpiMock[] = [
     direction: "up",
     icon: "users",
     accent: "#1D9E75",
+    spark: [28, 31, 30, 35, 33, 39, 42, 47],
   },
   {
     label: "Posts ce mois",
@@ -93,6 +96,7 @@ export const KPIS_MOCK: KpiMock[] = [
     direction: "flat",
     icon: "image",
     accent: "#BA7517",
+    spark: [3, 4, 4, 5, 6, 6, 7, 8],
   },
   {
     label: "Engagement",
@@ -101,8 +105,48 @@ export const KPIS_MOCK: KpiMock[] = [
     direction: "up",
     icon: "heart",
     accent: "#7B2FBE",
+    spark: [2.8, 3.0, 3.4, 3.2, 3.6, 3.9, 4.0, 4.2],
   },
 ];
+
+/* ----------------------------- Charts ----------------------------- */
+
+export const PERF_LABELS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"];
+
+export const PERF_SERIES = [
+  { name: "Engagement", color: "#1A3BFF", data: [22, 26, 24, 31, 29, 36, 40, 46] },
+  { name: "Leads", color: "#1D9E75", data: [12, 16, 18, 17, 24, 26, 31, 38] },
+  { name: "Portée (k)", color: "#7B2FBE", data: [28, 30, 34, 33, 38, 41, 44, 50] },
+];
+
+export const LEAD_SOURCES = [
+  { label: "Instagram", value: 42, color: "#1A3BFF" },
+  { label: "LinkedIn", value: 28, color: "#1D9E75" },
+  { label: "Referral", value: 18, color: "#7B2FBE" },
+  { label: "Cold email", value: 12, color: "#BA7517" },
+];
+
+export const FUNNEL_STAGES = [
+  { label: "Prospects", value: 1240, color: "#1A3BFF" },
+  { label: "Contactés", value: 480, color: "#3552FF" },
+  { label: "Répondus", value: 190, color: "#1D9E75" },
+  { label: "Qualifiés", value: 72, color: "#7B2FBE" },
+  { label: "Clients", value: 14, color: "#BA7517" },
+];
+
+export const INSIGHT_MOCK = {
+  title: "Insight HERMES",
+  text: "Le carrousel « 3 signes que ton Insta ne convertit pas » a généré 9 DM. Réplique ce format cette semaine.",
+  metric: "+24% engagement",
+};
+
+export const TOP_CONTENT = {
+  title: "3 signes que ton Insta ne convertit pas",
+  meta: "Carrousel · publié le 3 juin",
+  saves: 218,
+  reach: "6,4k",
+  color: "#1A3BFF",
+};
 
 export interface ActivityMock {
   agent: AgentKey;

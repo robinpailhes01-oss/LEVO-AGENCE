@@ -1,5 +1,6 @@
 import { Euro, Users, Image as ImageIcon, Heart, type LucideIcon } from "lucide-react";
 import type { KpiMock } from "@/lib/mock";
+import { Sparkline } from "@/components/charts/Sparkline";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<KpiMock["icon"], LucideIcon> = {
@@ -12,7 +13,7 @@ const ICONS: Record<KpiMock["icon"], LucideIcon> = {
 export function KpiCard({ kpi }: { kpi: KpiMock }) {
   const Icon = ICONS[kpi.icon];
   return (
-    <div className="levo-card group p-5 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:shadow-lift">
+    <div className="levo-card group overflow-hidden p-5 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:shadow-lift">
       <div className="flex items-center justify-between">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
@@ -37,6 +38,9 @@ export function KpiCard({ kpi }: { kpi: KpiMock }) {
         {kpi.value}
       </p>
       <p className="mt-1.5 text-xs text-muted">{kpi.label}</p>
+      <div className="-mx-5 -mb-5 mt-3">
+        <Sparkline data={kpi.spark} color={kpi.accent} id={kpi.label.replace(/\s+/g, "")} height={38} />
+      </div>
     </div>
   );
 }
