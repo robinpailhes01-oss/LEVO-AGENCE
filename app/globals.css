@@ -32,6 +32,12 @@
   h3 {
     @apply font-display tracking-tightest;
   }
+
+  /* Cormorant defaults to old-style figures; force clean lining + tabular
+     numerals so dashboard numbers read correctly (1 ≠ I, 0 ≠ O). */
+  .font-display {
+    font-feature-settings: "lnum" 1, "tnum" 1;
+  }
 }
 
 @layer components {
@@ -45,6 +51,11 @@
 
   .levo-pressable {
     @apply transition-all duration-200 ease-smooth active:scale-[0.985];
+  }
+
+  /* Editorial section label (cf. brand: caps, letter-spacing 0.14em) */
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-muted/80;
   }
 
   /* Agent CTA — tinted by default, fills with the agent color on card hover */

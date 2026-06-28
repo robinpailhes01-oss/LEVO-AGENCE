@@ -1,4 +1,4 @@
-import { Sparkles, TrendingUp, Bookmark, Eye } from "lucide-react";
+import { Sparkles, TrendingUp, Bookmark, Eye, ChevronDown } from "lucide-react";
 import { AgentCard } from "@/components/overview/AgentCard";
 import { KpiCard } from "@/components/overview/KpiCard";
 import { ActivityLog } from "@/components/overview/ActivityLog";
@@ -24,15 +24,22 @@ import {
 export default function OverviewPage() {
   return (
     <div className="space-y-8">
-      <header className="animate-fade-in">
-        <p className="text-[13px] font-medium capitalize text-muted">{todayLabel()}</p>
-        <h1 className="mt-1 font-display text-[34px] font-semibold leading-tight tracking-tightest text-ink md:text-[40px]">
-          Bonjour Robin <span className="inline-block">👋</span>
-        </h1>
+      <header className="flex flex-wrap items-end justify-between gap-3 animate-fade-in">
+        <div>
+          <p className="text-[13px] font-medium capitalize text-muted">{todayLabel()}</p>
+          <h1 className="mt-1 font-display text-[34px] font-semibold leading-tight tracking-tightest text-ink md:text-[40px]">
+            Bonjour Robin <span className="inline-block">👋</span>
+          </h1>
+        </div>
+        <button className="levo-pressable inline-flex items-center gap-2 rounded-full border border-line bg-white/70 px-4 py-2 text-sm font-medium text-ink shadow-xs transition-colors hover:bg-white">
+          Cette semaine
+          <ChevronDown className="h-4 w-4 text-muted" />
+        </button>
       </header>
 
       {/* Row 1 — Agents */}
       <section>
+        <p className="eyebrow mb-3">Vos agents</p>
         <div className="scroll-slim stagger -mx-4 flex gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-4">
           {AGENTS_MOCK.map((agent) => (
             <AgentCard key={agent.key} agent={agent} />
@@ -41,14 +48,19 @@ export default function OverviewPage() {
       </section>
 
       {/* Row 2 — KPIs with sparklines */}
-      <section className="stagger grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {KPIS_MOCK.map((kpi) => (
-          <KpiCard key={kpi.label} kpi={kpi} />
-        ))}
+      <section>
+        <p className="eyebrow mb-3">Indicateurs clés</p>
+        <div className="stagger grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {KPIS_MOCK.map((kpi) => (
+            <KpiCard key={kpi.label} kpi={kpi} />
+          ))}
+        </div>
       </section>
 
       {/* Row 3 — performance chart + lead sources donut */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section>
+        <p className="eyebrow mb-3">Performance</p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="animate-fade-in lg:col-span-2">
           <CardHeader>
             <CardTitle>Performance — 8 dernières semaines</CardTitle>
@@ -67,10 +79,13 @@ export default function OverviewPage() {
             <Donut segments={LEAD_SOURCES} centerLabel="leads" />
           </CardContent>
         </Card>
+        </div>
       </section>
 
       {/* Row 4 — funnel + activity + insight */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section>
+        <p className="eyebrow mb-3">Pipeline &amp; activité</p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="animate-fade-in">
           <CardHeader>
             <CardTitle>Tunnel de conversion</CardTitle>
@@ -139,10 +154,13 @@ export default function OverviewPage() {
             </CardContent>
           </Card>
         </div>
+        </div>
       </section>
 
       {/* Row 5 — to validate + hot leads */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <section>
+        <p className="eyebrow mb-3">À traiter</p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="animate-fade-in">
           <CardHeader>
             <CardTitle>À valider</CardTitle>
@@ -208,6 +226,7 @@ export default function OverviewPage() {
             ))}
           </CardContent>
         </Card>
+        </div>
       </section>
     </div>
   );

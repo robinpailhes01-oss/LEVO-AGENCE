@@ -1,4 +1,4 @@
-/** Conversion funnel — centered decreasing bars (pure CSS/HTML). */
+/** Conversion funnel as clean horizontal bars (legible, premium). */
 export interface FunnelStage {
   label: string;
   value: number;
@@ -6,28 +6,35 @@ export interface FunnelStage {
 }
 
 export function Funnel({ stages }: { stages: FunnelStage[] }) {
-  const max = Math.max(...stages.map((s) => s.value)) || 1;
+  const first = stages[0]?.value || 1;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {stages.map((stage, i) => {
-        const widthPct = 40 + (stage.value / max) * 60; // 40%..100%
-        const conv = i === 0 ? 100 : Math.round((stage.value / stages[0]!.value) * 100);
+        const widthPct = Math.max(8, (stage.value / first) * 100);
+        const conv = i === 0 ? 100 : Math.round((stage.value / first) * 100);
         return (
-          <div key={stage.label} className="flex flex-col items-center">
-            <div
-              className="relative flex h-12 items-center justify-between rounded-xl px-4 text-white shadow-soft transition-all duration-300"
-              style={{
-                width: `${widthPct}%`,
-                background: `linear-gradient(135deg, ${stage.color}, ${stage.color}cc)`,
-              }}
-            >
-              <span className="text-[13px] font-medium">{stage.label}</span>
-              <span className="font-display text-lg font-semibold tabular-nums">
-                {stage.value.toLocaleString("fr-FR")}
+          <div key={stage.label}>
+            <div className="mb-1.5 flex items-baseline justify-between gap-2">
+              <span className="text-[13px] font-medium text-ink">{stage.label}</span>
+              <span className="flex items-baseline gap-2">
+                <span className="font-sans text-[13px] font-semibold tabular-nums text-ink">
+                  {stage.value.toLocaleString("fr-FR")}
+                </span>
+                <span className="w-9 text-right text-[11px] tabular-nums text-muted">
+                  {conv}%
+                </span>
               </span>
             </div>
-            <span className="mt-0.5 text-[10px] text-muted">{conv}%</span>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-ink/[0.05]">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-smooth"
+                style={{
+                  width: `${widthPct}%`,
+                  background: `linear-gradient(90deg, ${stage.color}, ${stage.color}bb)`,
+                }}
+              />
+            </div>
           </div>
         );
       })}

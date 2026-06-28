@@ -119,19 +119,21 @@ export const PERF_SERIES = [
   { name: "Portée (k)", color: "#7B2FBE", data: [28, 30, 34, 33, 38, 41, 44, 50] },
 ];
 
+// Cohesive blue→violet analogous ramp (premium, not rainbow).
 export const LEAD_SOURCES = [
   { label: "Instagram", value: 42, color: "#1A3BFF" },
-  { label: "LinkedIn", value: 28, color: "#1D9E75" },
-  { label: "Referral", value: 18, color: "#7B2FBE" },
-  { label: "Cold email", value: 12, color: "#BA7517" },
+  { label: "LinkedIn", value: 28, color: "#5566FF" },
+  { label: "Referral", value: 18, color: "#8B5CF6" },
+  { label: "Cold email", value: 12, color: "#A9B2C7" },
 ];
 
+// Blue monochrome ramp — reads as one cohesive funnel.
 export const FUNNEL_STAGES = [
   { label: "Prospects", value: 1240, color: "#1A3BFF" },
-  { label: "Contactés", value: 480, color: "#3552FF" },
-  { label: "Répondus", value: 190, color: "#1D9E75" },
-  { label: "Qualifiés", value: 72, color: "#7B2FBE" },
-  { label: "Clients", value: 14, color: "#BA7517" },
+  { label: "Contactés", value: 480, color: "#3E57FF" },
+  { label: "Répondus", value: 190, color: "#6477FF" },
+  { label: "Qualifiés", value: 72, color: "#8C9AFF" },
+  { label: "Clients", value: 14, color: "#B3BCFF" },
 ];
 
 export const INSIGHT_MOCK = {
