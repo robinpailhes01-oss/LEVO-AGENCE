@@ -12,32 +12,31 @@ const ICONS: Record<KpiMock["icon"], LucideIcon> = {
 export function KpiCard({ kpi }: { kpi: KpiMock }) {
   const Icon = ICONS[kpi.icon];
   return (
-    <div className="rounded-2xl bg-card p-5 shadow-soft transition-shadow hover:shadow-card">
+    <div className="levo-card group p-5 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:shadow-lift">
       <div className="flex items-center justify-between">
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${kpi.accent}14`, color: kpi.accent }}
+          className="flex h-9 w-9 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+          style={{ backgroundColor: `${kpi.accent}12`, color: kpi.accent }}
         >
-          <Icon className="h-4 w-4" />
+          <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
         </span>
         <span
           className={cn(
-            "text-xs font-medium",
-            kpi.direction === "up" && "text-success",
-            kpi.direction === "down" && "text-danger",
-            kpi.direction === "flat" && "text-muted",
+            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+            kpi.direction === "up" && "bg-success/10 text-success",
+            kpi.direction === "down" && "bg-danger/10 text-danger",
+            kpi.direction === "flat" && "bg-background text-muted",
           )}
         >
-          {kpi.direction === "up" && "▲ "}
-          {kpi.direction === "down" && "▼ "}
-          {kpi.direction === "flat" && "→ "}
+          {kpi.direction === "up" && "↑"}
+          {kpi.direction === "down" && "↓"}
           {kpi.trend}
         </span>
       </div>
-      <p className="mt-3 font-display text-2xl font-semibold text-ink">
+      <p className="mt-4 font-display text-[28px] font-semibold leading-none tracking-tightest text-ink">
         {kpi.value}
       </p>
-      <p className="mt-0.5 text-xs text-muted">{kpi.label}</p>
+      <p className="mt-1.5 text-xs text-muted">{kpi.label}</p>
     </div>
   );
 }

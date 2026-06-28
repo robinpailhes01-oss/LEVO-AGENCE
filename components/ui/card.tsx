@@ -5,16 +5,19 @@ export function Card({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn("levo-card p-5", className)} {...props} />
-  );
+  return <div className={cn("levo-card p-5 md:p-6", className)} {...props} />;
 }
 
 export function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("mb-3 flex items-center justify-between", className)} {...props} />;
+  return (
+    <div
+      className={cn("mb-4 flex items-center justify-between", className)}
+      {...props}
+    />
+  );
 }
 
 export function CardTitle({
@@ -23,7 +26,10 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("font-display text-lg font-semibold text-ink", className)}
+      className={cn(
+        "font-display text-xl font-semibold tracking-tightest text-ink",
+        className,
+      )}
       {...props}
     />
   );

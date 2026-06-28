@@ -13,7 +13,7 @@ function isActive(pathname: string, href: string): boolean {
 export function MobileNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-line bg-white/95 backdrop-blur md:hidden">
+    <nav className="frost fixed inset-x-0 bottom-0 z-40 border-t border-line/60 pb-[env(safe-area-inset-bottom)] md:hidden">
       <div className="grid grid-cols-5">
         {MOBILE_NAV.map((item) => {
           const active = isActive(pathname, item.href);
@@ -23,11 +23,18 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 py-2 text-[11px] font-medium",
+                "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors duration-200",
                 active ? "text-accent" : "text-muted",
               )}
             >
-              <Icon className="h-5 w-5" />
+              <span
+                className={cn(
+                  "flex h-7 w-12 items-center justify-center rounded-full transition-colors duration-200",
+                  active && "bg-accent/10",
+                )}
+              >
+                <Icon className="h-[18px] w-[18px]" strokeWidth={active ? 2.1 : 1.9} />
+              </span>
               {item.label}
             </Link>
           );

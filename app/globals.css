@@ -7,29 +7,57 @@
     color-scheme: light;
   }
 
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
   body {
-    @apply bg-background text-ink font-sans;
+    @apply bg-background text-ink font-sans antialiased;
+    /* very subtle depth, Apple-like */
+    background-image: radial-gradient(
+      120% 80% at 50% -10%,
+      #f3f4fb 0%,
+      #ecedf7 45%,
+      #e8eaf5 100%
+    );
+    background-attachment: fixed;
   }
 
   h1,
   h2,
   h3 {
-    @apply font-display;
+    @apply font-display tracking-tightest;
   }
 }
 
 @layer components {
   .levo-card {
-    @apply rounded-2xl bg-card shadow-card border border-line/60;
+    @apply rounded-2xl bg-card shadow-card;
+    box-shadow:
+      0 1px 3px rgba(16, 24, 40, 0.04),
+      0 12px 28px -12px rgba(16, 24, 40, 0.12),
+      inset 0 0 0 1px rgba(16, 24, 40, 0.04);
   }
 
-  .levo-kpi {
-    @apply rounded-2xl bg-card shadow-soft border border-line/60 p-5;
+  .levo-pressable {
+    @apply transition-all duration-200 ease-smooth active:scale-[0.985];
+  }
+
+  /* Agent CTA — tinted by default, fills with the agent color on card hover */
+  .agent-cta {
+    background-color: color-mix(in srgb, var(--agent) 10%, white);
+    color: var(--agent);
+  }
+  .group:hover .agent-cta {
+    background-color: var(--agent);
+    color: #ffffff;
+    box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--agent) 70%, transparent);
   }
 
   .status-dot {
@@ -37,15 +65,49 @@
   }
 }
 
-/* Slim scrollbars for kanban / lists */
+@layer utilities {
+  .frost {
+    background-color: rgba(236, 238, 248, 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Slim, unobtrusive scrollbars */
 .scroll-slim::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 7px;
+  width: 7px;
 }
 .scroll-slim::-webkit-scrollbar-thumb {
-  background: rgba(13, 17, 23, 0.15);
+  background: rgba(13, 17, 23, 0.12);
   border-radius: 9999px;
+}
+.scroll-slim::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 17, 23, 0.22);
 }
 .scroll-slim::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Staggered entrance — apply .stagger to a parent, children rise in sequence */
+.stagger > * {
+  animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger > *:nth-child(3) { animation-delay: 0.14s; }
+.stagger > *:nth-child(4) { animation-delay: 0.20s; }
+.stagger > *:nth-child(5) { animation-delay: 0.26s; }
+.stagger > *:nth-child(6) { animation-delay: 0.32s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  .stagger > * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
 }

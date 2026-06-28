@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/** Levo wordmark — Cormorant display + accent dot. */
+/** Levo wordmark — accent dot + Cormorant display. */
 export function Logo({
   className,
   variant = "light",
@@ -11,13 +11,13 @@ export function Logo({
   return (
     <span
       className={cn(
-        "font-display font-semibold tracking-tight inline-flex items-baseline",
+        "inline-flex items-center gap-2 font-display font-semibold tracking-tightest",
         variant === "dark" ? "text-white" : "text-ink",
         className,
       )}
     >
+      <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_12px_rgba(26,59,255,0.6)]" />
       Levo
-      <span className="ml-0.5 h-1.5 w-1.5 translate-y-[-2px] rounded-full bg-accent" />
     </span>
   );
 }

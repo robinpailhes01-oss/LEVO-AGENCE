@@ -10,51 +10,67 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Levo palette
+        // Levo palette — refined
         background: "#ECEEF8",
+        surface: "#F4F5FB",
         card: "#FFFFFF",
         accent: "#1A3BFF",
-        ink: "#1A1A1A",
-        sidebar: "#0D1117",
+        "accent-soft": "#4E66FF",
+        ink: "#16181D",
+        sidebar: "#0B0D12",
         // Agent accents
         luna: "#1A3BFF",
         orion: "#1D9E75",
         hermes: "#BA7517",
         veille: "#7B2FBE",
         // Functional
-        muted: "#6B7280",
-        line: "#E5E7EB",
+        muted: "#71757E",
+        line: "#E6E8F0",
         success: "#1D9E75",
         warning: "#BA7517",
-        danger: "#DC2626",
+        danger: "#E5484D",
       },
       fontFamily: {
         display: ["var(--font-cormorant)", "Georgia", "serif"],
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
+      letterSpacing: {
+        tightest: "-0.03em",
+      },
       borderRadius: {
-        xl: "1rem",
-        "2xl": "1.5rem",
-        "3xl": "2rem",
+        xl: "0.875rem",
+        "2xl": "1.25rem",
+        "3xl": "1.75rem",
       },
       boxShadow: {
-        soft: "0 2px 8px rgba(16, 24, 40, 0.04), 0 1px 2px rgba(16, 24, 40, 0.06)",
-        card: "0 4px 24px rgba(16, 24, 40, 0.06)",
-        lift: "0 8px 32px rgba(26, 59, 255, 0.12)",
+        xs: "0 1px 2px rgba(16, 24, 40, 0.05)",
+        soft: "0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px -2px rgba(16, 24, 40, 0.06)",
+        card: "0 1px 3px rgba(16, 24, 40, 0.04), 0 12px 28px -12px rgba(16, 24, 40, 0.12)",
+        lift: "0 2px 6px rgba(16, 24, 40, 0.06), 0 22px 48px -16px rgba(16, 24, 40, 0.22)",
+        ring: "inset 0 0 0 1px rgba(16, 24, 40, 0.05)",
+      },
+      transitionTimingFunction: {
+        smooth: "cubic-bezier(0.22, 1, 0.36, 1)",
+        spring: "cubic-bezier(0.34, 1.4, 0.64, 1)",
       },
       keyframes: {
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(4px)" },
+        rise: {
+          from: { opacity: "0", transform: "translateY(10px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
-        pulse: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.5" },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.97)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
       },
       animation: {
-        "fade-in": "fade-in 0.3s ease-out",
-        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        rise: "rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "scale-in": "scale-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "fade-in": "fade-in 0.5s ease-out both",
       },
     },
   },
