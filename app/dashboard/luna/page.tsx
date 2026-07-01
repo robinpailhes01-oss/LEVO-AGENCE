@@ -1,8 +1,12 @@
 import { Sparkles } from "lucide-react";
 import { ContentKanban } from "@/components/luna/ContentKanban";
 import { PageHeader, ActionButton } from "@/components/layout/PageHeader";
+import { getContent } from "@/lib/queries";
 
-export default function LunaPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LunaPage() {
+  const content = await getContent();
   return (
     <div className="space-y-6">
       <PageHeader
@@ -15,7 +19,7 @@ export default function LunaPage() {
           </ActionButton>
         }
       />
-      <ContentKanban />
+      <ContentKanban content={content} />
     </div>
   );
 }

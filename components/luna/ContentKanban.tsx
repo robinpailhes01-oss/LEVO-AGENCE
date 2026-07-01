@@ -1,42 +1,81 @@
-import { Images, Film } from "lucide-react";
-import { LUNA_BOARD } from "@/lib/mock";
+import { Images } from "lucide-react";
+import type { ContentItem, ContentStatus } from "@/lib/db";
 
-export function ContentKanban() {
+const COLUMNS: { key: string; label: string; statuses: ContentStatus[] }[] = [
+  { key: "idea", label: "Idée", statuses: ["idea", "approved_idea"] },
+  { key: "drafted", label: "Rédigé", statuses: ["drafted"] },
+  { key: "validate", label: "À valider", statuses: ["approved_content"] },
+  { key: "ready", label: "Prêt", statuses: ["generating", "ready", "scheduled"] },
+  { key: "published", label: "Publié", statuses: ["published"] },
+];
+
+const THEME_LABEL: Record<string, string> = {
+  cas_client: "Cas client",
+  hook_probleme: "Hook",
+  educatif: "Éducatif",
+  solution: "Solution",
+  methode: "Méthode",
+};
+
+function fmtDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  } catch {
+    return "";
+  }
+}
+
+export function ContentKanban({ content }: { content: ContentItem[] }) {
+  if (content.length === 0) {
+    return (
+      <div className="levo-card p-10 text-center">
+        <p className="text-sm text-muted">
+          Aucun contenu pour l'instant. Le bouton « Générer des idées » (branché à
+          l'étape LUNA) créera des idées ici, dans la table <code>content_calendar</code>.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="scroll-slim -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 xl:grid-cols-5">
-      {LUNA_BOARD.map((col) => (
-        <div key={col.key} className="flex w-[76vw] shrink-0 flex-col sm:w-64 md:w-auto">
-          <div className="mb-2.5 flex items-center justify-between px-1.5">
-            <span className="text-[13px] font-semibold text-ink">{col.label}</span>
-            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-muted shadow-xs">
-              {col.items.length}
-            </span>
-          </div>
-          <div className="flex flex-1 flex-col gap-2.5 rounded-3xl bg-black/[0.025] p-2.5">
-            {col.items.map((card, i) => {
-              const isReel = card.type.toLowerCase() === "reel";
-              return (
-                <div
-                  key={i}
-                  className="levo-card levo-pressable cursor-pointer p-3.5 hover:-translate-y-0.5 hover:shadow-lift"
-                >
-                  <span className="inline-flex items-center gap-1 rounded-full bg-luna/[0.08] px-2 py-0.5 text-[10px] font-medium text-luna">
-                    {isReel ? <Film className="h-3 w-3" /> : <Images className="h-3 w-3" />}
-                    {card.type}
-                  </span>
-                  <p className="mt-2.5 text-[13.5px] font-medium leading-snug text-ink">
-                    {card.title}
-                  </p>
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-muted">
-                    <span>{isReel ? "1 vidéo" : `${card.slides} slides`}</span>
-                    <span className="tabular-nums">{card.date}</span>
+      {COLUMNS.map((col) => {
+        const items = content.filter((c) => col.statuses.includes(c.status));
+        return (
+          <div key={col.key} className="flex w-[76vw] shrink-0 flex-col sm:w-64 md:w-auto">
+            <div className="mb-2.5 flex items-center justify-between px-1.5">
+              <span className="text-[13px] font-semibold text-ink">{col.label}</span>
+              <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-muted shadow-xs">
+                {items.length}
+              </span>
+            </div>
+            <div className="flex flex-1 flex-col gap-2.5 rounded-3xl bg-black/[0.025] p-2.5">
+              {items.length === 0 ? (
+                <p className="py-6 text-center text-xs text-muted/60">—</p>
+              ) : (
+                items.map((c) => (
+                  <div
+                    key={c.id}
+                    className="levo-card levo-pressable cursor-pointer p-3.5 hover:-translate-y-0.5 hover:shadow-lift"
+                  >
+                    <span className="inline-flex items-center gap-1 rounded-full bg-luna/[0.08] px-2 py-0.5 text-[10px] font-medium text-luna">
+                      <Images className="h-3 w-3" />
+                      {c.theme ? THEME_LABEL[c.theme] ?? c.theme : "Contenu"}
+                    </span>
+                    <p className="mt-2.5 text-[13.5px] font-medium leading-snug text-ink">
+                      {c.title}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-muted">
+                      <span>{Array.isArray(c.platform) ? c.platform.join(", ") : "—"}</span>
+                      <span className="tabular-nums">{fmtDate(c.created_at)}</span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

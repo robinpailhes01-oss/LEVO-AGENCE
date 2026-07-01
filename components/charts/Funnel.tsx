@@ -6,13 +6,14 @@ export interface FunnelStage {
 }
 
 export function Funnel({ stages }: { stages: FunnelStage[] }) {
-  const first = stages[0]?.value || 1;
+  const first = stages[0]?.value || 0;
+  const max = Math.max(...stages.map((s) => s.value), 1);
 
   return (
     <div className="space-y-4">
       {stages.map((stage, i) => {
-        const widthPct = Math.max(8, (stage.value / first) * 100);
-        const conv = i === 0 ? 100 : Math.round((stage.value / first) * 100);
+        const widthPct = stage.value > 0 ? Math.max(8, (stage.value / max) * 100) : 8;
+        const conv = i === 0 ? 100 : first > 0 ? Math.round((stage.value / first) * 100) : 0;
         return (
           <div key={stage.label}>
             <div className="mb-1.5 flex items-baseline justify-between gap-2">

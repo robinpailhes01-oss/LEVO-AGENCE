@@ -1,27 +1,70 @@
-import { Sparkles, TrendingUp, Bookmark, Eye, ChevronDown } from "lucide-react";
+import { Euro, Users, FileCheck2, Heart, ChevronDown, LineChart } from "lucide-react";
 import { AgentCard } from "@/components/overview/AgentCard";
-import { KpiCard } from "@/components/overview/KpiCard";
 import { ActivityLog } from "@/components/overview/ActivityLog";
-import { TrendChart } from "@/components/charts/TrendChart";
 import { Donut } from "@/components/charts/Donut";
 import { Funnel } from "@/components/charts/Funnel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  AGENTS_MOCK,
-  KPIS_MOCK,
-  TO_VALIDATE_MOCK,
-  HOT_LEADS_MOCK,
-  PERF_SERIES,
-  PERF_LABELS,
-  LEAD_SOURCES,
-  FUNNEL_STAGES,
-  INSIGHT_MOCK,
-  TOP_CONTENT,
-  todayLabel,
-} from "@/lib/mock";
+import { AGENTS_MOCK, todayLabel, type AgentMock, type AgentStatus } from "@/lib/mock";
+import { getOverview, getContent, getLeads } from "@/lib/queries";
+import type { AgentLog, AgentName } from "@/lib/db";
+import { formatCurrency } from "@/lib/utils";
 
-export default function OverviewPage() {
+export const dynamic = "force-dynamic";
+
+function snapshot(
+  agent: AgentName,
+  logs: AgentLog[],
+  fallbackSpeech: string,
+): { status: AgentStatus; speech: string } {
+  const last = logs.find((l) => l.agent_name === agent);
+  if (!last) return { status: "idle", speech: fallbackSpeech };
+  const ageMs = Date.now() - new Date(last.created_at).getTime();
+  const status: AgentStatus =
+    last.status === "pending" ? "working" : ageMs < 864e5 ? "active" : "idle";
+  return { status, speech: last.action };
+}
+
+const FUNNEL_COLORS = ["#1A3BFF", "#3E57FF", "#6477FF", "#8C9AFF", "#B3BCFF"];
+const FUNNEL_MAP: { key: string; label: string }[] = [
+  { key: "new", label: "Nouveau" },
+  { key: "contacted", label: "Contacté" },
+  { key: "responded", label: "Répondu" },
+  { key: "qualified", label: "Qualifié" },
+  { key: "won", label: "Gagné" },
+];
+
+export default async function OverviewPage() {
+  const [ov, content, leads] = await Promise.all([getOverview(), getContent(), getLeads()]);
+
+  const ideasCount = content.filter((c) => c.status === "idea").length;
+  const hasLeads = leads.length > 0;
+
+  const stats: Record<string, { value: string; label: string }> = {
+    luna: { value: String(ov.toValidate), label: "à valider" },
+    orion: { value: String(ov.activeLeads), label: "leads actifs" },
+    hermes: { value: `${ov.avgEngagement}%`, label: "engagement moyen" },
+    veille: { value: String(ideasCount), label: "idées à trier" },
+  };
+
+  const agents: AgentMock[] = AGENTS_MOCK.map((a) => {
+    const snap = snapshot(a.name.toUpperCase() as AgentName, ov.logs, a.speech);
+    return { ...a, status: snap.status, speech: snap.speech, stat: stats[a.key] ?? a.stat };
+  });
+
+  const kpis = [
+    { label: "MRR", value: formatCurrency(ov.mrr), icon: Euro, accent: "#1A3BFF" },
+    { label: "Leads actifs", value: String(ov.activeLeads), icon: Users, accent: "#1D9E75" },
+    { label: "Posts publiés", value: String(ov.publishedPosts), icon: FileCheck2, accent: "#BA7517" },
+    { label: "Engagement", value: `${ov.avgEngagement}%`, icon: Heart, accent: "#7B2FBE" },
+  ];
+
+  const funnelStages = FUNNEL_MAP.map((s, i) => ({
+    label: s.label,
+    value: ov.leadsByStatus[s.key] ?? 0,
+    color: FUNNEL_COLORS[i]!,
+  }));
+
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-3 animate-fade-in">
@@ -37,197 +80,121 @@ export default function OverviewPage() {
         </button>
       </header>
 
-      {/* Row 1 — Agents */}
+      {/* Agents */}
       <section>
         <p className="eyebrow mb-3">Vos agents</p>
         <div className="scroll-slim stagger -mx-4 flex gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-4">
-          {AGENTS_MOCK.map((agent) => (
+          {agents.map((agent) => (
             <AgentCard key={agent.key} agent={agent} />
           ))}
         </div>
       </section>
 
-      {/* Row 2 — KPIs with sparklines */}
+      {/* KPIs */}
       <section>
         <p className="eyebrow mb-3">Indicateurs clés</p>
         <div className="stagger grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {KPIS_MOCK.map((kpi) => (
-            <KpiCard key={kpi.label} kpi={kpi} />
+          {kpis.map((k) => (
+            <div key={k.label} className="levo-card p-5">
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-xl"
+                style={{ backgroundColor: `${k.accent}14`, color: k.accent }}
+              >
+                <k.icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
+              </span>
+              <p className="mt-4 font-display text-[28px] font-semibold leading-none tracking-tightest text-ink">
+                {k.value}
+              </p>
+              <p className="mt-1.5 text-xs text-muted">{k.label}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Row 3 — performance chart + lead sources donut */}
+      {/* Charts */}
       <section>
         <p className="eyebrow mb-3">Performance</p>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="animate-fade-in lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Performance — 8 dernières semaines</CardTitle>
-            <Badge tone="blue">Live</Badge>
-          </CardHeader>
-          <CardContent>
-            <TrendChart series={PERF_SERIES} labels={PERF_LABELS} />
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>Sources de leads</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <Donut segments={LEAD_SOURCES} centerLabel="leads" />
-          </CardContent>
-        </Card>
-        </div>
-      </section>
-
-      {/* Row 4 — funnel + activity + insight */}
-      <section>
-        <p className="eyebrow mb-3">Pipeline &amp; activité</p>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>Tunnel de conversion</CardTitle>
-            <Badge tone="green">ORION</Badge>
-          </CardHeader>
-          <CardContent className="pt-1">
-            <Funnel stages={FUNNEL_STAGES} />
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>Activité récente</CardTitle>
-            <span className="text-xs font-medium text-muted">Aujourd'hui</span>
-          </CardHeader>
-          <CardContent>
-            <ActivityLog />
-          </CardContent>
-        </Card>
-
-        <div className="flex flex-col gap-4">
-          {/* HERMES insight — sophisticated dark card */}
-          <div className="animate-fade-in rounded-2xl bg-sidebar p-5 text-white shadow-card md:p-6">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10">
-                <Sparkles className="h-3.5 w-3.5 text-[#7E91FF]" />
-              </span>
-              <p className="text-sm font-semibold">{INSIGHT_MOCK.title}</p>
-            </div>
-            <p className="mt-3 text-[13px] leading-relaxed text-white/70">
-              {INSIGHT_MOCK.text}
-            </p>
-            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-[#9DACFF]">
-              <TrendingUp className="h-3.5 w-3.5" />
-              {INSIGHT_MOCK.metric}
-            </span>
-          </div>
-
-          {/* Top content */}
-          <Card className="animate-fade-in">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Top contenu</CardTitle>
-              <Badge tone="blue">LUNA</Badge>
+              <CardTitle>Tunnel de conversion</CardTitle>
+              <Badge tone="green">ORION</Badge>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <span
-                  className="h-12 w-12 shrink-0 rounded-xl"
-                  style={{
-                    background: `linear-gradient(135deg, ${TOP_CONTENT.color}, ${TOP_CONTENT.color}aa)`,
-                  }}
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-[13px] font-medium text-ink">
-                    {TOP_CONTENT.title}
+            <CardContent className="pt-1">
+              {hasLeads ? (
+                <Funnel stages={funnelStages} />
+              ) : (
+                <div className="flex flex-col items-center gap-2 py-10 text-center">
+                  <LineChart className="h-6 w-6 text-muted/50" />
+                  <p className="text-sm text-muted">
+                    Le tunnel se remplira dès les premiers leads.
                   </p>
-                  <p className="truncate text-xs text-muted">{TOP_CONTENT.meta}</p>
                 </div>
-              </div>
-              <div className="mt-3 flex gap-4 text-xs text-muted">
-                <span className="inline-flex items-center gap-1">
-                  <Bookmark className="h-3.5 w-3.5" /> {TOP_CONTENT.saves} saves
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Eye className="h-3.5 w-3.5" /> {TOP_CONTENT.reach} de portée
-                </span>
-              </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Sources de leads</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              {ov.leadsBySource.length > 0 ? (
+                <Donut segments={ov.leadsBySource} centerLabel="leads" />
+              ) : (
+                <p className="py-10 text-center text-sm text-muted">
+                  Pas encore de leads à répartir.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
-        </div>
       </section>
 
-      {/* Row 5 — to validate + hot leads */}
+      {/* Activity + hot leads */}
       <section>
-        <p className="eyebrow mb-3">À traiter</p>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>À valider</CardTitle>
-            <Badge tone="blue">LUNA</Badge>
-          </CardHeader>
-          <CardContent className="space-y-2.5">
-            {TO_VALIDATE_MOCK.map((post) => (
-              <div
-                key={post.title}
-                className="levo-pressable group flex items-center gap-3 rounded-2xl border border-line/70 p-2.5 transition-colors hover:border-transparent hover:bg-background"
-              >
-                <span
-                  className="h-11 w-11 shrink-0 rounded-xl"
-                  style={{
-                    background: `linear-gradient(135deg, ${post.color}, ${post.color}aa)`,
-                    boxShadow: `0 6px 16px -6px ${post.color}80`,
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{post.title}</p>
-                  <p className="truncate text-xs text-muted">{post.meta}</p>
-                </div>
-                <button className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-medium text-white shadow-soft transition-all hover:brightness-110 active:scale-95">
-                  Valider
-                </button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <p className="eyebrow mb-3">Pipeline &amp; activité</p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Activité récente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ActivityLog logs={ov.logs} />
+            </CardContent>
+          </Card>
 
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <CardTitle>Leads chauds</CardTitle>
-            <Badge tone="green">ORION</Badge>
-          </CardHeader>
-          <CardContent className="space-y-1.5">
-            {HOT_LEADS_MOCK.map((lead) => (
-              <div
-                key={lead.name}
-                className="levo-pressable flex items-center gap-3 rounded-2xl border border-line/70 px-3 py-2.5 transition-colors hover:border-transparent hover:bg-background"
-              >
-                <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-                  style={{
-                    backgroundColor: lead.color,
-                    boxShadow: `0 4px 12px -4px ${lead.color}90`,
-                  }}
-                >
-                  {lead.initials}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{lead.name}</p>
-                  <p className="truncate text-xs text-muted">{lead.sector}</p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
-                    lead.score > 70 ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
-                  }`}
-                >
-                  {lead.score}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Leads chauds</CardTitle>
+              <Badge tone="green">ORION</Badge>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              {ov.hotLeads.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted">Aucun lead chaud (≥ 70).</p>
+              ) : (
+                ov.hotLeads.map((l) => (
+                  <div
+                    key={l.id}
+                    className="flex items-center gap-3 rounded-2xl border border-line/70 px-3 py-2.5"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orion text-xs font-semibold text-white">
+                      {(l.full_name ?? "?").slice(0, 2).toUpperCase()}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium text-ink">
+                        {l.full_name ?? "Sans nom"}
+                      </p>
+                      <p className="truncate text-xs text-muted">{l.company ?? l.sector ?? "—"}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold tabular-nums text-success">
+                      {l.score}
+                    </span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
         </div>
       </section>
     </div>
