@@ -62,10 +62,23 @@ export interface Client {
   next_review: string | null;
 }
 
+/** Pipeline réel ORION (flow Robin). */
+export type LeadStage =
+  | "new"
+  | "contacted"
+  | "opened"
+  | "replied"
+  | "audit_received"
+  | "loom_sent"
+  | "follow_up"
+  | "won"
+  | "lost";
+
 export interface Lead {
   id: string;
   created_at: string;
   full_name: string | null;
+  first_name: string | null;
   company: string | null;
   sector: string | null;
   email: string | null;
@@ -74,11 +87,83 @@ export interface Lead {
   source: LeadSource | null;
   score: number;
   status: LeadStatus;
+  stage: LeadStage;
+  niche_id: string | null;
+  campaign_id: string | null;
+  instantly_lead_id: string | null;
+  opens: number;
+  last_event_at: string | null;
   last_touch: string | null;
   notes: string | null;
   assigned_agent: string | null;
   pain_points: string[] | null;
   enrichment_data: Record<string, unknown> | null;
+}
+
+/* ---- Outreach (cold email) ---- */
+
+export interface Niche {
+  id: string;
+  created_at: string;
+  name: string;
+  pain_point: string | null;
+  value_prop: string | null;
+  target_criteria: string | null;
+  status: "testing" | "active" | "paused" | "archived";
+}
+
+export interface Campaign {
+  id: string;
+  created_at: string;
+  niche_id: string | null;
+  name: string;
+  instantly_campaign_id: string | null;
+  inbox_email: string | null;
+  daily_limit: number;
+  status: "draft" | "active" | "paused";
+}
+
+export type EmailEventType =
+  | "sent"
+  | "opened"
+  | "clicked"
+  | "replied"
+  | "bounced"
+  | "unsubscribed";
+
+export interface EmailEvent {
+  id: string;
+  created_at: string;
+  lead_id: string | null;
+  campaign_id: string | null;
+  type: EmailEventType;
+  occurred_at: string;
+  meta: Record<string, unknown> | null;
+}
+
+export interface Reply {
+  id: string;
+  created_at: string;
+  lead_id: string | null;
+  from_email: string | null;
+  to_inbox: string | null;
+  subject: string | null;
+  body: string | null;
+  received_at: string;
+  is_read: boolean;
+  instantly_message_id: string | null;
+}
+
+export interface Audit {
+  id: string;
+  created_at: string;
+  lead_id: string | null;
+  niche_id: string | null;
+  status: "invited" | "started" | "completed";
+  answers: Record<string, unknown> | null;
+  submitted_at: string | null;
+  loom_url: string | null;
+  mockup_notes: string | null;
 }
 
 export interface ContentItem {
