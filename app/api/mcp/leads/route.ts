@@ -119,7 +119,6 @@ const { GET, POST } = mcpRoute("leads", [
         sector: lead.sector ?? result.niche,
         pain_points: result.pain_points ?? null,
         enrichment_data: { niche: result.niche, angle: result.angle, rationale: result.rationale },
-        status: lead.status === "new" ? "enriched" as LeadStatus : lead.status,
       }).eq("id", lead.id).select("*").single();
       if (error) throw new Error(error.message);
       return updated;
