@@ -59,6 +59,18 @@ export const serverEnv = {
   get emailTo(): string | undefined {
     return process.env.EMAIL_TO;
   },
+  /** Instantly.ai — envoi/séquences/replies. Optionnel tant que non branché. */
+  get instantlyApiKey(): string | undefined {
+    return process.env.INSTANTLY_API_KEY;
+  },
+  /** Outscraper — scraping Google Maps + enrichment email/Instagram. Optionnel. */
+  get outscraperApiKey(): string | undefined {
+    return process.env.OUTSCRAPER_API_KEY;
+  },
+  /** Apify — scraping alternatif, si connecté. Optionnel. */
+  get apifyApiToken(): string | undefined {
+    return process.env.APIFY_API_TOKEN;
+  },
 } as const;
 
 /** True si Supabase est configuré (sans lever d'erreur). Pour dégrader proprement. */
