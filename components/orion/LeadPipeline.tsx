@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import type { Lead, LeadStage, Niche } from "@/lib/db";
+import { LeadDetailModal } from "@/components/orion/LeadDetailModal";
 
 /** Colonnes du pipeline réel ORION (flow Robin). `lost` traité à part. */
 const COLUMNS: { key: LeadStage; label: string; tone: string }[] = [
@@ -29,6 +30,7 @@ function initials(name: string | null): string {
 
 export function LeadPipeline({ leads, niches }: { leads: Lead[]; niches: Niche[] }) {
   const [nicheId, setNicheId] = useState<string | "all" | "none">("all");
+  const [selected, setSelected] = useState<Lead | null>(null);
 
   const visible = leads.filter((l) => {
     if (nicheId === "all") return true;
@@ -102,7 +104,9 @@ export function LeadPipeline({ leads, niches }: { leads: Lead[]; niches: Niche[]
                     {items.length === 0 ? (
                       <p className="py-6 text-center text-xs text-muted/60">—</p>
                     ) : (
-                      items.map((l) => <LeadCard key={l.id} lead={l} />)
+                      items.map((l) => (
+                        <LeadCard key={l.id} lead={l} onClick={() => setSelected(l)} />
+                      ))
                     )}
                   </div>
                 </div>
@@ -114,17 +118,28 @@ export function LeadPipeline({ leads, niches }: { leads: Lead[]; niches: Niche[]
           )}
         </>
       )}
+
+      {selected && (
+        <LeadDetailModal
+          lead={selected}
+          niche={niches.find((n) => n.id === selected.niche_id) ?? null}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
 
-function LeadCard({ lead }: { lead: Lead }) {
+function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
   const city =
     lead.enrichment_data && typeof lead.enrichment_data === "object"
       ? (lead.enrichment_data as Record<string, unknown>).city
       : null;
   return (
-    <div className="levo-card levo-pressable cursor-pointer p-3.5 hover:-translate-y-0.5 hover:shadow-lift">
+    <div
+      onClick={onClick}
+      className="levo-card levo-pressable cursor-pointer p-3.5 hover:-translate-y-0.5 hover:shadow-lift"
+    >
       <div className="flex items-center gap-2.5">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orion text-xs font-semibold text-white shadow-soft">
           {initials(lead.company ?? lead.full_name)}
