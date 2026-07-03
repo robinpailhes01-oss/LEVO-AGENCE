@@ -1,7 +1,9 @@
 "use client";
 
-import { X, Mail, Phone, MapPin, Globe, Facebook, Linkedin } from "lucide-react";
-import type { Lead, Niche } from "@/lib/db";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { X, Mail, Phone, MapPin, Globe, Facebook, Linkedin, Loader2 } from "lucide-react";
+import type { Lead, LeadStage, Niche } from "@/lib/db";
 
 const STAGE_LABELS: Record<string, string> = {
   new: "Nouveau",
@@ -14,6 +16,10 @@ const STAGE_LABELS: Record<string, string> = {
   won: "Gagné",
   lost: "Perdu",
 };
+
+const STAGE_OPTIONS: LeadStage[] = [
+  "new", "contacted", "opened", "replied", "audit_received", "loom_sent", "follow_up", "won", "lost",
+];
 
 function Row({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -33,6 +39,10 @@ export function LeadDetailModal({
   niche: Niche | null;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const [stage, setStage] = useState<LeadStage>(lead.stage);
+  const [saving, setSaving] = useState(false);
+
   const enrichment = (lead.enrichment_data ?? {}) as Record<string, unknown>;
   const phone = typeof enrichment.phone === "string" ? enrichment.phone : null;
   const address = typeof enrichment.address === "string" ? enrichment.address : null;
@@ -40,6 +50,25 @@ export function LeadDetailModal({
   const facebook = typeof enrichment.facebook === "string" ? enrichment.facebook : null;
   const linkedin = typeof enrichment.linkedin === "string" ? enrichment.linkedin : null;
   const icebreaker = typeof enrichment.icebreaker === "string" ? enrichment.icebreaker : null;
+
+  async function changeStage(next: LeadStage) {
+    const previous = stage;
+    setStage(next);
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/leads/${lead.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: next }),
+      });
+      if (!res.ok) throw new Error();
+      router.refresh();
+    } catch {
+      setStage(previous);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div
@@ -61,9 +90,21 @@ export function LeadDetailModal({
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-orion/10 px-2.5 py-1 text-[11px] font-semibold text-orion">
-            {STAGE_LABELS[lead.stage] ?? lead.stage}
-          </span>
+          <div className="relative">
+            <select
+              value={stage}
+              disabled={saving}
+              onChange={(e) => changeStage(e.target.value as LeadStage)}
+              className="appearance-none rounded-full bg-orion/10 py-1 pl-2.5 pr-6 text-[11px] font-semibold text-orion outline-none disabled:opacity-60"
+            >
+              {STAGE_OPTIONS.map((s) => (
+                <option key={s} value={s}>{STAGE_LABELS[s]}</option>
+              ))}
+            </select>
+            {saving && (
+              <Loader2 className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin text-orion" />
+            )}
+          </div>
           {niche && (
             <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[11px] font-medium text-ink">
               {niche.name}
