@@ -49,6 +49,17 @@ export function getLeads(): Promise<Lead[]> {
   }, []);
 }
 
+export function getUnreadReplyCount(): Promise<number> {
+  return safe(async () => {
+    const { count, error } = await supabaseAdmin()
+      .from("replies")
+      .select("*", { count: "exact", head: true })
+      .eq("is_read", false);
+    if (error) throw error;
+    return count ?? 0;
+  }, 0);
+}
+
 export function getNiches(): Promise<Niche[]> {
   return safe(async () => {
     const { data, error } = await supabaseAdmin()
