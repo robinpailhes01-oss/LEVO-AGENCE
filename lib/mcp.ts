@@ -104,6 +104,10 @@ export function num(input: Record<string, unknown>, key: string): number | undef
   const v = input[key];
   return typeof v === "number" && Number.isFinite(v) ? v : undefined;
 }
+export function bool(input: Record<string, unknown>, key: string): boolean | undefined {
+  const v = input[key];
+  return typeof v === "boolean" ? v : undefined;
+}
 export function arr(input: Record<string, unknown>, key: string): string[] | undefined {
   const v = input[key];
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : undefined;

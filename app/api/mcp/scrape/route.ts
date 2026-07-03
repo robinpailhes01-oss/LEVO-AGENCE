@@ -1,7 +1,6 @@
-import { mcpRoute, str, num, arr, requireStr } from "@/lib/mcp";
+import { mcpRoute, str, num, arr, bool, requireStr } from "@/lib/mcp";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { startGoogleMapsSearch, getSearchResult } from "@/lib/outscraper";
-import type { LeadSource } from "@/lib/db";
+import { startGoogleMapsSearch, getSearchResult, normalizeLeads } from "@/lib/outscraper";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -23,64 +22,80 @@ const { GET, POST } = mcpRoute("scrape", [
   },
   {
     name: "fetch_scrape",
-    description: "Consulte le statut/résultat brut d'une recherche Outscraper (sans importer en base).",
-    input: { request_id: "string" },
-    run: async (input) => getSearchResult(requireStr(input, "request_id")),
+    description:
+      "Statut d'une recherche Outscraper + aperçu propre des leads (dédoublonnés, Occitanie) SANS importer en base. Sert à valider avant import_scrape.",
+    input: { request_id: "string", occitanie_only: "boolean?" },
+    run: async (input) => {
+      const occitanieOnly = bool(input, "occitanie_only") ?? true;
+      const { status, places } = await getSearchResult(requireStr(input, "request_id"));
+      if (status !== "Success") return { status, ready: false };
+      const { leads, stats } = normalizeLeads(places, { occitanieOnly });
+      return { status, ready: true, stats, preview: leads.slice(0, 15) };
+    },
   },
   {
     name: "import_scrape",
     description:
-      "Récupère les résultats d'une recherche Outscraper terminée et les importe comme leads (dédup par email), tagués sur une niche.",
-    input: { request_id: "string", niche_id: "string?" },
+      "Récupère une recherche Outscraper terminée, dédoublonne par entreprise (meilleur email), filtre l'Occitanie et importe comme leads tagués sur une niche.",
+    input: { request_id: "string", niche_id: "string?", occitanie_only: "boolean?" },
     run: async (input) => {
       const requestId = requireStr(input, "request_id");
       const nicheId = str(input, "niche_id") ?? null;
+      const occitanieOnly = bool(input, "occitanie_only") ?? true;
       const { status, places } = await getSearchResult(requestId);
       if (status !== "Success") {
-        return { status, imported: 0, message: "Recherche pas encore terminée (relancer fetch_scrape/import_scrape dans quelques instants)." };
+        return { status, imported: 0, message: "Recherche pas encore terminée (relancer import_scrape dans quelques instants)." };
       }
 
-      const withEmail = places
-        .map((p) => ({ ...p, email: (p.email_1 ?? p.email_2 ?? p.email_3 ?? "").trim() }))
-        .filter((p) => p.email.length > 0);
-
+      const { leads, stats } = normalizeLeads(places, { occitanieOnly });
       const db = supabaseAdmin();
-      const emails = withEmail.map((p) => p.email);
+
+      const emails = leads.map((l) => l.email);
       const { data: existing } = await db
         .from("leads")
         .select("email")
         .in("email", emails.length ? emails : ["__none__"]);
       const seen = new Set((existing ?? []).map((r) => (r as { email: string }).email));
 
-      const rows = withEmail
-        .filter((p) => !seen.has(p.email))
-        .map((p) => ({
-          email: p.email,
-          full_name: p.name ?? "Sans nom",
-          company: p.name ?? null,
-          sector: p.category ?? null,
-          instagram_handle: p.instagram ?? null,
-          linkedin_url: p.site ?? null,
+      const rows = leads
+        .filter((l) => !seen.has(l.email))
+        .map((l) => ({
+          email: l.email,
+          full_name: l.full_name,
+          first_name: l.first_name,
+          company: l.company,
+          sector: l.sector,
+          instagram_handle: l.instagram,
+          linkedin_url: l.website,
           niche_id: nicheId,
-          source: "website" as LeadSource,
+          source: "website" as const,
           status: "new" as const,
           stage: "new" as const,
           assigned_agent: "ORION",
-          enrichment_data: { phone: p.phone ?? null, facebook: p.facebook ?? null, address: p.full_address ?? null },
+          enrichment_data: {
+            phone: l.phone,
+            facebook: l.facebook,
+            linkedin: l.linkedin,
+            city: l.city,
+            postal_code: l.postal_code,
+            address: l.address,
+          },
         }));
 
-      if (rows.length === 0) {
-        return { status, found: places.length, with_email: withEmail.length, imported: 0, skipped_duplicates: withEmail.length };
-      }
+      const summary = {
+        status,
+        rows_raw: places.length,
+        businesses: stats.businesses,
+        filtered_out_of_occitanie: stats.filtered_geo,
+        with_usable_email: stats.with_email,
+        skipped_duplicates_in_db: leads.length - rows.length,
+        imported: 0,
+      };
+      if (rows.length === 0) return summary;
+
       const { data, error } = await db.from("leads").insert(rows).select("id");
       if (error) throw new Error(error.message);
-      return {
-        status,
-        found: places.length,
-        with_email: withEmail.length,
-        imported: (data ?? []).length,
-        skipped_duplicates: withEmail.length - rows.length,
-      };
+      return { ...summary, imported: (data ?? []).length };
     },
   },
 ]);
