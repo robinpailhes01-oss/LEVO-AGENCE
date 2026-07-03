@@ -1,6 +1,7 @@
 import { mcpRoute, str, num, arr, obj, requireStr } from "@/lib/mcp";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { callClaudeJson } from "@/lib/claude";
+import { serverEnv } from "@/lib/env";
 import {
   ORION_ENRICH_SYSTEM,
   ORION_EMAIL1_SYSTEM,
@@ -14,8 +15,6 @@ export const maxDuration = 60;
 
 const SOURCES: LeadSource[] = ["instagram", "linkedin", "referral", "website", "cold_email"];
 const STATUSES: LeadStatus[] = ["new", "contacted", "responded", "qualified", "proposal", "won", "lost"];
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://levo-agence.vercel.app";
 
 const { GET, POST } = mcpRoute("leads", [
   {
@@ -133,7 +132,7 @@ const { GET, POST } = mcpRoute("leads", [
       const { data: row } = await db.from("leads").select("*").eq("id", requireStr(input, "lead_id")).maybeSingle();
       if (!row) throw new Error("Lead introuvable.");
       const lead = row as Lead;
-      const auditLink = str(input, "audit_link") ?? `${APP_URL}/audit?lead=${lead.id}`;
+      const auditLink = str(input, "audit_link") ?? `${serverEnv.auditSiteUrl}/audit?lead=${lead.id}`;
       const result = await callClaudeJson<{ subject: string; body: string; icebreaker: string }>({
         system: ORION_EMAIL1_SYSTEM,
         prompt: email1Prompt(lead, auditLink),

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
+import { nextStage } from "@/lib/lead-stage";
 import type { EmailEventType, LeadStage } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -17,22 +18,6 @@ export const runtime = "nodejs";
  * timestamp, event_type, campaign_id, campaign_name, lead_email,
  * email_account, reply_subject, reply_text.
  */
-
-const STAGE_ORDER: LeadStage[] = [
-  "new", "contacted", "opened", "replied", "audit_received", "loom_sent", "follow_up", "won",
-];
-
-function stageRank(s: string): number {
-  const i = STAGE_ORDER.indexOf(s as LeadStage);
-  return i === -1 ? -1 : i;
-}
-
-/** Ne fait jamais reculer un lead — sauf `lost`, signal négatif fort qu'on accepte toujours (sauf si déjà gagné). */
-function nextStage(current: LeadStage, candidate: LeadStage): LeadStage {
-  if (candidate === "lost") return current === "won" ? current : "lost";
-  if (stageRank(candidate) > stageRank(current)) return candidate;
-  return current;
-}
 
 function tokenValid(req: Request): boolean {
   const url = new URL(req.url);

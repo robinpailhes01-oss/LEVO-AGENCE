@@ -71,6 +71,10 @@ export const serverEnv = {
   get apifyApiToken(): string | undefined {
     return process.env.APIFY_API_TOKEN;
   },
+  /** Site vitrine Levo (où vit la page /audit) — distinct de ce dashboard. */
+  get auditSiteUrl(): string {
+    return process.env.AUDIT_SITE_URL ?? "https://levo-plum.vercel.app";
+  },
 } as const;
 
 /** True si Supabase est configuré (sans lever d'erreur). Pour dégrader proprement. */
