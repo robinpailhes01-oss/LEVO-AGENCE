@@ -6,6 +6,7 @@ import type {
   Client,
   ContentItem,
   Lead,
+  Niche,
   WeeklyReport,
 } from "@/lib/db";
 
@@ -45,6 +46,17 @@ export function getLeads(): Promise<Lead[]> {
       .order("score", { ascending: false });
     if (error) throw error;
     return (data ?? []) as Lead[];
+  }, []);
+}
+
+export function getNiches(): Promise<Niche[]> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("niches")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as Niche[];
   }, []);
 }
 
