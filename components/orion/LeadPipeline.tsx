@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Download } from "lucide-react";
 import type { Lead, LeadStage, Niche } from "@/lib/db";
 
 /** Colonnes du pipeline réel ORION (flow Robin). `lost` traité à part. */
@@ -57,13 +58,24 @@ export function LeadPipeline({ leads, niches }: { leads: Lead[]; niches: Niche[]
     </button>
   );
 
+  const exportHref = `/api/export/leads${nicheId !== "all" && nicheId !== "none" ? `?niche_id=${nicheId}` : ""}`;
+
   return (
     <div className="space-y-4">
       {/* Filtre niches */}
-      <div className="scroll-slim -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
-        {chip("all", "Toutes niches")}
-        {niches.map((n) => chip(n.id, n.name))}
-        {countFor("none") > 0 && chip("none", "Sans niche")}
+      <div className="flex items-center justify-between gap-2">
+        <div className="scroll-slim -mx-4 flex flex-1 gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
+          {chip("all", "Toutes niches")}
+          {niches.map((n) => chip(n.id, n.name))}
+          {countFor("none") > 0 && chip("none", "Sans niche")}
+        </div>
+        <a
+          href={exportHref}
+          className="levo-pressable flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-medium text-ink shadow-xs hover:text-orion"
+        >
+          <Download className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Exporter CSV</span>
+        </a>
       </div>
 
       {visible.length === 0 ? (
