@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
 import { nextStage } from "@/lib/lead-stage";
+import { sendEmail } from "@/lib/resend";
 import type { LeadStage } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -50,20 +51,28 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const db = supabaseAdmin();
-  const { data: lead } = await db.from("leads").select("id, stage, niche_id").eq("id", body.lead_id).maybeSingle();
+  const { data: lead } = await db
+    .from("leads")
+    .select("id, stage, niche_id, email, company, full_name")
+    .eq("id", body.lead_id)
+    .maybeSingle();
   if (!lead) {
     return new Response(JSON.stringify({ ok: false, error: "Lead introuvable" }), {
       status: 404,
       headers: { "content-type": "application/json" },
     });
   }
-  const row = lead as { id: string; stage: LeadStage; niche_id: string | null };
+  const row = lead as {
+    id: string; stage: LeadStage; niche_id: string | null;
+    email: string | null; company: string | null; full_name: string | null;
+  };
+  const answers = body.answers ?? {};
 
   await db.from("audits").insert({
     lead_id: row.id,
     niche_id: row.niche_id,
     status: "completed",
-    answers: body.answers ?? {},
+    answers,
     submitted_at: new Date().toISOString(),
     loom_url: body.loom_url ?? null,
   });
@@ -73,8 +82,52 @@ export async function POST(req: Request): Promise<Response> {
     .update({ stage: nextStage(row.stage, "audit_received"), last_event_at: new Date().toISOString() })
     .eq("id", row.id);
 
+  await sendAuditEmails(row, answers);
+
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { "content-type": "application/json" },
   });
+}
+
+/** Best-effort — un échec d'envoi d'email ne doit jamais faire échouer l'enregistrement de l'audit. */
+async function sendAuditEmails(
+  lead: { email: string | null; company: string | null; full_name: string | null },
+  answers: Record<string, unknown>,
+): Promise<void> {
+  const prenom = typeof answers.prenom === "string" ? answers.prenom : null;
+  const submitterEmail = typeof answers.email === "string" ? answers.email : lead.email;
+  const entreprise = typeof answers.entreprise === "string" ? answers.entreprise : lead.company ?? lead.full_name;
+  const heures = typeof answers.heures_perdues_semaine === "number" ? answers.heures_perdues_semaine : null;
+  const perte = typeof answers.perte_mensuelle_estimee === "number" ? answers.perte_mensuelle_estimee : null;
+
+  if (submitterEmail) {
+    try {
+      await sendEmail({
+        to: submitterEmail,
+        subject: "Votre audit gratuit est bien reçu",
+        html: `<p>Bonjour ${prenom ?? ""},</p>
+<p>Merci d'avoir rempli votre audit gratuit — c'est bien reçu.</p>
+<p>Robin prépare maintenant votre démo personnalisée à partir de vos réponses, vous aurez de ses nouvelles très vite.</p>
+<p>À bientôt,<br/>L'équipe Levo</p>`,
+      });
+    } catch (err) {
+      console.error("[webhook:audit] email client échoué", err);
+    }
+  }
+
+  const notifyTo = serverEnv.emailTo;
+  if (notifyTo) {
+    try {
+      await sendEmail({
+        to: notifyTo,
+        subject: `Nouvel audit reçu — ${entreprise ?? "sans nom"}`,
+        html: `<p>Nouvel audit rempli par <strong>${entreprise ?? "—"}</strong>${prenom ? ` (${prenom})` : ""}.</p>
+<p>Heures perdues/semaine : ${heures ?? "—"}<br/>Perte estimée/mois : ${perte ?? "—"} €</p>
+<p><a href="https://levo-agence.vercel.app/dashboard/orion">Voir dans le dashboard</a></p>`,
+      });
+    } catch (err) {
+      console.error("[webhook:audit] email notif échoué", err);
+    }
+  }
 }

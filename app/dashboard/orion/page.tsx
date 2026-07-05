@@ -1,12 +1,12 @@
 import { UserPlus } from "lucide-react";
 import { LeadPipeline } from "@/components/orion/LeadPipeline";
 import { PageHeader, ActionButton } from "@/components/layout/PageHeader";
-import { getLeads, getNiches } from "@/lib/queries";
+import { getLeads, getNiches, getLatestAuditsByLead } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function OrionPage() {
-  const [leads, niches] = await Promise.all([getLeads(), getNiches()]);
+  const [leads, niches, auditsByLead] = await Promise.all([getLeads(), getNiches(), getLatestAuditsByLead()]);
 
   const replied = leads.filter((l) =>
     ["replied", "audit_received", "loom_sent", "follow_up"].includes(l.stage),
@@ -24,7 +24,7 @@ export default async function OrionPage() {
           </ActionButton>
         }
       />
-      <LeadPipeline leads={leads} niches={niches} />
+      <LeadPipeline leads={leads} niches={niches} auditsByLead={auditsByLead} />
     </div>
   );
 }

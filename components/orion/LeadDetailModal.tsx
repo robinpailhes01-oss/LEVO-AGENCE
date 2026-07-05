@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Mail, Phone, MapPin, Globe, Facebook, Linkedin, Loader2 } from "lucide-react";
-import type { Lead, LeadStage, Niche } from "@/lib/db";
+import { X, Mail, Phone, MapPin, Globe, Facebook, Linkedin, Loader2, ClipboardCheck } from "lucide-react";
+import type { Audit, Lead, LeadStage, Niche } from "@/lib/db";
 
 const STAGE_LABELS: Record<string, string> = {
   new: "Nouveau",
@@ -30,13 +30,19 @@ function Row({ icon, children }: { icon: React.ReactNode; children: React.ReactN
   );
 }
 
+function taskLabel(key: string): string {
+  return key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
+
 export function LeadDetailModal({
   lead,
   niche,
+  audit,
   onClose,
 }: {
   lead: Lead;
   niche: Niche | null;
+  audit?: Audit | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -154,6 +160,48 @@ export function LeadDetailModal({
           <div className="mt-4 rounded-2xl bg-black/[0.025] p-3.5">
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">Accroche ORION</p>
             <p className="text-[13px] text-ink">{icebreaker}</p>
+          </div>
+        )}
+
+        {audit?.answers && (
+          <div className="mt-4 rounded-2xl bg-orion/[0.06] p-3.5">
+            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-orion">
+              <ClipboardCheck className="h-3 w-3" /> Résultats de l'audit
+            </p>
+            {(() => {
+              const a = audit.answers as Record<string, unknown>;
+              const heures = typeof a.heures_perdues_semaine === "number" ? a.heures_perdues_semaine : null;
+              const perte = typeof a.perte_mensuelle_estimee === "number" ? a.perte_mensuelle_estimee : null;
+              const taches = Array.isArray(a.taches) ? (a.taches as string[]) : [];
+              return (
+                <>
+                  {(heures !== null || perte !== null) && (
+                    <div className="mb-2 flex gap-2">
+                      {heures !== null && (
+                        <div className="flex-1 rounded-xl bg-white px-3 py-2">
+                          <p className="text-[15px] font-semibold text-ink">{heures}h</p>
+                          <p className="text-[10.5px] text-muted">perdues / semaine</p>
+                        </div>
+                      )}
+                      {perte !== null && (
+                        <div className="flex-1 rounded-xl bg-white px-3 py-2">
+                          <p className="text-[15px] font-semibold text-ink">{perte}€</p>
+                          <p className="text-[10.5px] text-muted">perte estimée / mois</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {taches.length > 0 && (
+                    <p className="text-[12.5px] text-ink">
+                      Tâches chronophages : {taches.map(taskLabel).join(", ")}
+                    </p>
+                  )}
+                </>
+              );
+            })()}
+            <p className="mt-2 text-[10.5px] text-muted/70">
+              Soumis le {audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString("fr-FR") : "—"}
+            </p>
           </div>
         )}
 

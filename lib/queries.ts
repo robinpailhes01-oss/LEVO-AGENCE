@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { hasSupabase } from "@/lib/env";
 import type {
   AgentLog,
+  Audit,
   Client,
   ContentItem,
   Lead,
@@ -58,6 +59,22 @@ export function getUnreadReplyCount(): Promise<number> {
     if (error) throw error;
     return count ?? 0;
   }, 0);
+}
+
+/** Dernier audit par lead (lead_id -> Audit le plus récent). */
+export function getLatestAuditsByLead(): Promise<Record<string, Audit>> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("audits")
+      .select("*")
+      .order("submitted_at", { ascending: false });
+    if (error) throw error;
+    const byLead: Record<string, Audit> = {};
+    for (const a of (data ?? []) as Audit[]) {
+      if (a.lead_id && !byLead[a.lead_id]) byLead[a.lead_id] = a;
+    }
+    return byLead;
+  }, {});
 }
 
 export function getNiches(): Promise<Niche[]> {

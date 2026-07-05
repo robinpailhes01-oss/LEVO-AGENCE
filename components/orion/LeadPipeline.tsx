@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Download } from "lucide-react";
-import type { Lead, LeadStage, Niche } from "@/lib/db";
+import type { Audit, Lead, LeadStage, Niche } from "@/lib/db";
 import { LeadDetailModal } from "@/components/orion/LeadDetailModal";
 
 /** Colonnes du pipeline réel ORION (flow Robin). `lost` traité à part. */
@@ -28,7 +28,15 @@ function initials(name: string | null): string {
     .toUpperCase();
 }
 
-export function LeadPipeline({ leads, niches }: { leads: Lead[]; niches: Niche[] }) {
+export function LeadPipeline({
+  leads,
+  niches,
+  auditsByLead = {},
+}: {
+  leads: Lead[];
+  niches: Niche[];
+  auditsByLead?: Record<string, Audit>;
+}) {
   const [nicheId, setNicheId] = useState<string | "all" | "none">("all");
   const [selected, setSelected] = useState<Lead | null>(null);
 
@@ -123,6 +131,7 @@ export function LeadPipeline({ leads, niches }: { leads: Lead[]; niches: Niche[]
         <LeadDetailModal
           lead={selected}
           niche={niches.find((n) => n.id === selected.niche_id) ?? null}
+          audit={auditsByLead[selected.id] ?? null}
           onClose={() => setSelected(null)}
         />
       )}

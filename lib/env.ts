@@ -56,6 +56,9 @@ export const serverEnv = {
   get resendApiKey(): string | undefined {
     return process.env.RESEND_API_KEY;
   },
+  get emailFrom(): string | undefined {
+    return process.env.EMAIL_FROM;
+  },
   get emailTo(): string | undefined {
     return process.env.EMAIL_TO;
   },
