@@ -82,7 +82,20 @@ export async function POST(req: Request): Promise<Response> {
     .update({ stage: nextStage(row.stage, "audit_received"), last_event_at: new Date().toISOString() })
     .eq("id", row.id);
 
-  await sendAuditEmails(row, answers);
+  const { data: lastSent } = await db
+    .from("email_events")
+    .select("meta")
+    .eq("lead_id", row.id)
+    .eq("type", "sent")
+    .order("occurred_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sendingInbox =
+    lastSent && typeof (lastSent as { meta: Record<string, unknown> }).meta?.email_account === "string"
+      ? ((lastSent as { meta: Record<string, unknown> }).meta.email_account as string)
+      : null;
+
+  await sendAuditEmails(row, answers, sendingInbox);
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
@@ -94,6 +107,7 @@ export async function POST(req: Request): Promise<Response> {
 async function sendAuditEmails(
   lead: { email: string | null; company: string | null; full_name: string | null },
   answers: Record<string, unknown>,
+  sendingInbox: string | null,
 ): Promise<void> {
   const prenom = typeof answers.prenom === "string" ? answers.prenom : null;
   const submitterEmail = typeof answers.email === "string" ? answers.email : lead.email;
@@ -106,6 +120,7 @@ async function sendAuditEmails(
       await sendEmail({
         to: submitterEmail,
         subject: "Votre audit gratuit est bien reçu",
+        replyTo: sendingInbox ?? undefined,
         html: `<p>Bonjour ${prenom ?? ""},</p>
 <p>Merci d'avoir rempli votre audit gratuit — c'est bien reçu.</p>
 <p>Robin prépare maintenant votre démo personnalisée à partir de vos réponses, vous aurez de ses nouvelles très vite.</p>
