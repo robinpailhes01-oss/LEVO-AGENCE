@@ -13,13 +13,15 @@ const { GET, POST } = mcpRoute("niches", [
       const db = supabaseAdmin();
       const { data: niches, error } = await db.from("niches").select("*").order("created_at", { ascending: true });
       if (error) throw new Error(error.message);
-      const { data: leads } = await db.from("leads").select("niche_id");
-      const counts = new Map<string, number>();
-      for (const l of leads ?? []) {
-        const id = (l as { niche_id: string | null }).niche_id;
-        if (id) counts.set(id, (counts.get(id) ?? 0) + 1);
-      }
-      return (niches ?? []).map((n) => ({ ...(n as Record<string, unknown>), lead_count: counts.get((n as { id: string }).id) ?? 0 }));
+      const counts = await Promise.all(
+        (niches ?? []).map((n) =>
+          db.from("leads").select("*", { count: "exact", head: true }).eq("niche_id", (n as { id: string }).id),
+        ),
+      );
+      return (niches ?? []).map((n, i) => ({
+        ...(n as Record<string, unknown>),
+        lead_count: counts[i]?.count ?? 0,
+      }));
     },
     input: {},
   },

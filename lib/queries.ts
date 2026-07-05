@@ -39,14 +39,22 @@ export function getClients(): Promise<Client[]> {
   }, []);
 }
 
+/** Supabase/PostgREST plafonne une lecture à 1000 lignes — on pagine pour tout récupérer. */
 export function getLeads(): Promise<Lead[]> {
   return safe(async () => {
-    const { data, error } = await supabaseAdmin()
-      .from("leads")
-      .select("*")
-      .order("score", { ascending: false });
-    if (error) throw error;
-    return (data ?? []) as Lead[];
+    const pageSize = 1000;
+    const all: Lead[] = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabaseAdmin()
+        .from("leads")
+        .select("*")
+        .order("score", { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      all.push(...((data ?? []) as Lead[]));
+      if (!data || data.length < pageSize) break;
+    }
+    return all;
   }, []);
 }
 

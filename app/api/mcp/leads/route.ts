@@ -35,6 +35,23 @@ const { GET, POST } = mcpRoute("leads", [
     },
   },
   {
+    name: "count_leads",
+    description: "Compte exact des leads (total, ou par niche/stage/statut). Contrairement à get_leads, pas plafonné à 1000.",
+    input: { niche_id: "string?", stage: "string?", status: "string?" },
+    run: async (input) => {
+      let q = supabaseAdmin().from("leads").select("*", { count: "exact", head: true });
+      const nicheId = str(input, "niche_id");
+      if (nicheId) q = q.eq("niche_id", nicheId);
+      const stage = str(input, "stage");
+      if (stage) q = q.eq("stage", stage);
+      const status = str(input, "status");
+      if (status) q = q.eq("status", status);
+      const { count, error } = await q;
+      if (error) throw new Error(error.message);
+      return { count: count ?? 0 };
+    },
+  },
+  {
     name: "create_lead",
     description: "Ajoute un lead au pipeline.",
     input: { full_name: "string", company: "string?", email: "string?", source: "string?", instagram_handle: "string?", sector: "string?", niche_id: "string?" },

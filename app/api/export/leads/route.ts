@@ -28,14 +28,18 @@ export async function GET(req: Request): Promise<Response> {
   const nicheId = url.searchParams.get("niche_id");
   const stage = url.searchParams.get("stage");
 
-  let q = supabaseAdmin().from("leads").select("*").not("email", "is", null);
-  if (nicheId) q = q.eq("niche_id", nicheId);
-  if (stage) q = q.eq("stage", stage);
-
-  const { data, error } = await q.order("created_at", { ascending: true });
-  if (error) return new Response(`Erreur : ${error.message}`, { status: 500 });
-
-  const leads = (data ?? []) as Lead[];
+  // Supabase/PostgREST plafonne une lecture à 1000 lignes — on pagine pour tout exporter.
+  const leads: Lead[] = [];
+  const pageSize = 1000;
+  for (let from = 0; ; from += pageSize) {
+    let q = supabaseAdmin().from("leads").select("*").not("email", "is", null);
+    if (nicheId) q = q.eq("niche_id", nicheId);
+    if (stage) q = q.eq("stage", stage);
+    const { data, error } = await q.order("created_at", { ascending: true }).range(from, from + pageSize - 1);
+    if (error) return new Response(`Erreur : ${error.message}`, { status: 500 });
+    leads.push(...((data ?? []) as Lead[]));
+    if (!data || data.length < pageSize) break;
+  }
   const lines = [HEADERS.join(",")];
   for (const l of leads) {
     const { first, last } = splitName(l.first_name ? null : l.full_name);
