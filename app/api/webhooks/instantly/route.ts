@@ -95,7 +95,10 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     if (eventType === "reply_received") {
-      patch.stage = nextStage(currentStage, "replied");
+      // Réponse APRÈS l'envoi du Loom → le prospect réagit à la démo : on le passe
+      // en « Suivi » (le sort ainsi des relances J+3). Sinon → « Répondu » classique.
+      const alreadyDemoed = currentStage === "loom_sent" || currentStage === "follow_up";
+      patch.stage = nextStage(currentStage, alreadyDemoed ? "follow_up" : "replied");
       await db.from("replies").insert({
         lead_id: leadId,
         from_email: leadEmail ?? null,
