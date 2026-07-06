@@ -3,17 +3,41 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/resend";
 import { emailSignatureHtml } from "@/lib/brand";
 import { nextStage } from "@/lib/lead-stage";
+import { serverEnv } from "@/lib/env";
 import type { Audit, Lead, LeadStage } from "@/lib/db";
 
 export const runtime = "nodejs";
 
+/** Bearer MCP valide ? (auth alternative pour tests/automatisation). */
+function mcpAuthorized(req: Request): boolean {
+  const header = req.headers.get("authorization") ?? "";
+  const m = header.match(/^Bearer\s+(.+)$/i);
+  if (!m) return false;
+  let expected: string;
+  try {
+    expected = serverEnv.mcpSecret;
+  } catch {
+    return false;
+  }
+  const token = m[1] ?? "";
+  if (token.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < token.length; i++) diff |= token.charCodeAt(i) ^ expected.charCodeAt(i);
+  return diff === 0;
+}
+
 /**
  * Envoie la démo personnalisée (lien Loom) au prospect depuis le dashboard,
- * puis fait avancer le lead au stage `loom_sent`. Protégé par la session
- * dashboard (pas le token MCP — action déclenchée depuis le navigateur de Robin).
+ * puis fait avancer le lead au stage `loom_sent`. Auth : session dashboard
+ * (navigateur de Robin) OU Bearer MCP (tests/automatisation).
  */
 export async function POST(req: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
-  if (!(await isAuthenticated())) return new Response("Non autorisé", { status: 401 });
+  if (!mcpAuthorized(req) && !(await isAuthenticated())) {
+    return new Response(JSON.stringify({ ok: false, error: "Non autorisé" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
 
   const { id } = await context.params;
   let body: { loom_url?: string };
