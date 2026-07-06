@@ -1,11 +1,12 @@
 import { isAuthenticated } from "@/lib/auth-guard";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { serverEnv } from "@/lib/env";
 import type { Lead } from "@/lib/db";
 
 export const runtime = "nodejs";
 
 /** Colonnes pensées pour l'import Instantly (mapping simple à l'écran d'import). */
-const HEADERS = ["email", "first_name", "company_name", "phone", "website", "city", "sector", "icebreaker"];
+const HEADERS = ["email", "first_name", "company_name", "phone", "website", "city", "sector", "audit_link", "icebreaker"];
 
 function csvCell(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
@@ -60,6 +61,7 @@ export async function GET(req: Request): Promise<Response> {
         l.linkedin_url ?? "",
         city,
         l.sector ?? "",
+        `${serverEnv.auditSiteUrl}/audit?lead=${l.id}`, // lien d'audit unique par lead
         icebreaker,
       ]
         .map(csvCell)
