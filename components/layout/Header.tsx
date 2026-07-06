@@ -1,11 +1,23 @@
 "use client";
 
-import { Bell, Search, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "./Logo";
+import { NotificationBell } from "./NotificationBell";
+import type { ReplyWithLead } from "@/lib/queries";
 
-export function Header({ canLogout = false, unreadReplies = 0 }: { canLogout?: boolean; unreadReplies?: number }) {
+export function Header({
+  canLogout = false,
+  pendingAudits = 0,
+  followUps = 0,
+  replies = [],
+}: {
+  canLogout?: boolean;
+  pendingAudits?: number;
+  followUps?: number;
+  replies?: ReplyWithLead[];
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -33,17 +45,7 @@ export function Header({ canLogout = false, unreadReplies = 0 }: { canLogout?: b
         >
           <Search className="h-[17px] w-[17px]" strokeWidth={1.9} />
         </button>
-        <button
-          aria-label={unreadReplies > 0 ? `${unreadReplies} réponse(s) non lue(s)` : "Notifications"}
-          className="levo-pressable relative flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-white/70 text-muted transition-colors hover:text-ink"
-        >
-          <Bell className="h-[17px] w-[17px]" strokeWidth={1.9} />
-          {unreadReplies > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-orion px-1 text-[10px] font-semibold text-white ring-2 ring-white">
-              {unreadReplies > 9 ? "9+" : unreadReplies}
-            </span>
-          )}
-        </button>
+        <NotificationBell pendingAudits={pendingAudits} followUps={followUps} replies={replies} />
         {canLogout && (
           <button
             onClick={logout}

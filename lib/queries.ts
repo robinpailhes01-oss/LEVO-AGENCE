@@ -58,6 +58,45 @@ export function getLeads(): Promise<Lead[]> {
   }, []);
 }
 
+export interface ReplyWithLead {
+  id: string;
+  lead_id: string | null;
+  from_email: string | null;
+  subject: string | null;
+  body: string | null;
+  received_at: string;
+  is_read: boolean;
+  company: string | null;
+  full_name: string | null;
+}
+
+/** Réponses reçues (inbox), les plus récentes d'abord, avec le nom de l'entreprise. */
+export function getRecentReplies(limit = 30): Promise<ReplyWithLead[]> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("replies")
+      .select("id, lead_id, from_email, subject, body, received_at, is_read, leads(company, full_name)")
+      .order("received_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []).map((r) => {
+      const row = r as Record<string, unknown>;
+      const lead = (row.leads ?? {}) as { company?: string | null; full_name?: string | null };
+      return {
+        id: String(row.id),
+        lead_id: (row.lead_id as string | null) ?? null,
+        from_email: (row.from_email as string | null) ?? null,
+        subject: (row.subject as string | null) ?? null,
+        body: (row.body as string | null) ?? null,
+        received_at: String(row.received_at),
+        is_read: Boolean(row.is_read),
+        company: lead.company ?? null,
+        full_name: lead.full_name ?? null,
+      };
+    });
+  }, []);
+}
+
 export function getUnreadReplyCount(): Promise<number> {
   return safe(async () => {
     const { count, error } = await supabaseAdmin()
