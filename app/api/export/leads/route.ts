@@ -5,18 +5,12 @@ import type { Lead } from "@/lib/db";
 export const runtime = "nodejs";
 
 /** Colonnes pensées pour l'import Instantly (mapping simple à l'écran d'import). */
-const HEADERS = ["email", "first_name", "last_name", "company_name", "phone", "website", "city", "sector", "icebreaker"];
+const HEADERS = ["email", "first_name", "company_name", "phone", "website", "city", "sector", "icebreaker"];
 
 function csvCell(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
   if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
-}
-
-function splitName(fullName: string | null): { first: string; last: string } {
-  if (!fullName) return { first: "", last: "" };
-  const parts = fullName.trim().split(/\s+/);
-  return { first: parts[0] ?? "", last: parts.slice(1).join(" ") };
 }
 
 export async function GET(req: Request): Promise<Response> {
@@ -42,15 +36,13 @@ export async function GET(req: Request): Promise<Response> {
   }
   const lines = [HEADERS.join(",")];
   for (const l of leads) {
-    const { first, last } = splitName(l.first_name ? null : l.full_name);
     const enrichment = (l.enrichment_data ?? {}) as Record<string, unknown>;
     const city = typeof enrichment.city === "string" ? enrichment.city : "";
     const icebreaker = typeof enrichment.icebreaker === "string" ? enrichment.icebreaker : "";
     lines.push(
       [
         l.email ?? "",
-        l.first_name ?? first,
-        last,
+        l.first_name ?? "", // vrai prénom de contact uniquement, vide si inconnu
         l.company ?? "",
         (enrichment.phone as string | undefined) ?? "",
         l.linkedin_url ?? "",
