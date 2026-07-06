@@ -24,3 +24,15 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     headers: { "content-type": "application/json" },
   });
 }
+
+/** Supprime une réponse de l'inbox. */
+export async function DELETE(_req: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
+  if (!(await isAuthenticated())) return new Response("Non autorisé", { status: 401 });
+  const { id } = await context.params;
+  const { error } = await supabaseAdmin().from("replies").delete().eq("id", id);
+  if (error) return new Response(error.message, { status: 500 });
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}

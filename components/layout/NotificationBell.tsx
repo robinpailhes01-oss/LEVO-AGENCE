@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, AlertCircle, Clock, MessageSquare, X, Reply } from "lucide-react";
+import { Bell, AlertCircle, Clock, MessageSquare, X, Reply, Trash2 } from "lucide-react";
 import type { ReplyWithLead } from "@/lib/queries";
 
 export function NotificationBell({
@@ -34,6 +34,16 @@ export function NotificationBell({
       } catch {
         /* best-effort */
       }
+    }
+  }
+
+  async function deleteReply(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setItems((prev) => prev.filter((x) => x.id !== id));
+    try {
+      await fetch(`/api/replies/${id}`, { method: "DELETE" });
+    } catch {
+      /* best-effort */
     }
   }
 
@@ -103,23 +113,32 @@ export function NotificationBell({
               <p className="px-2 py-6 text-center text-[12.5px] text-muted">Aucune réponse pour l'instant.</p>
             ) : (
               items.map((r) => (
-                <div key={r.id} className="rounded-xl px-2 py-2 hover:bg-black/[0.02]">
-                  <button onClick={() => openReply(r)} className="flex w-full items-start gap-2.5 text-left">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orion/12 text-orion">
-                      <MessageSquare className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5">
-                        {!r.is_read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orion" />}
-                        <span className={`truncate text-[13px] ${r.is_read ? "text-ink" : "font-semibold text-ink"}`}>
-                          {r.company ?? r.full_name ?? r.from_email ?? "Prospect"}
+                <div key={r.id} className="group rounded-xl px-2 py-2 hover:bg-black/[0.02]">
+                  <div className="flex w-full items-start gap-2.5">
+                    <button onClick={() => openReply(r)} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orion/12 text-orion">
+                        <MessageSquare className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5">
+                          {!r.is_read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orion" />}
+                          <span className={`truncate text-[13px] ${r.is_read ? "text-ink" : "font-semibold text-ink"}`}>
+                            {r.company ?? r.full_name ?? r.from_email ?? "Prospect"}
+                          </span>
+                        </span>
+                        <span className="mt-0.5 block truncate text-[12px] text-muted">
+                          {r.subject ?? (r.body ? r.body.slice(0, 60) : "—")}
                         </span>
                       </span>
-                      <span className="mt-0.5 block truncate text-[12px] text-muted">
-                        {r.subject ?? (r.body ? r.body.slice(0, 60) : "—")}
-                      </span>
-                    </span>
-                  </button>
+                    </button>
+                    <button
+                      onClick={(e) => deleteReply(r.id, e)}
+                      aria-label="Supprimer"
+                      className="mt-0.5 shrink-0 rounded-full p-1.5 text-muted/50 hover:bg-danger/10 hover:text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                   {expanded === r.id && (
                     <div className="mt-2 rounded-xl bg-black/[0.03] p-3">
                       {r.body && <p className="whitespace-pre-wrap text-[12.5px] text-ink">{r.body}</p>}

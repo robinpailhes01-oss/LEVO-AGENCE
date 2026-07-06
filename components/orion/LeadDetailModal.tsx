@@ -108,17 +108,31 @@ export function LeadDetailModal({
   }
 
   async function sendLoom() {
-    if (!loomUrl.trim()) return;
+    const url = loomUrl.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) {
+      setLoomState("error");
+      setLoomError("Le lien doit commencer par https:// (ex: https://www.loom.com/share/…)");
+      return;
+    }
     setLoomState("sending");
     setLoomError(null);
     try {
       const res = await fetch(`/api/leads/${lead.id}/loom`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ loom_url: loomUrl.trim() }),
+        body: JSON.stringify({ loom_url: url }),
       });
-      const data = (await res.json()) as { ok: boolean; error?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error ?? "Échec de l'envoi.");
+      const raw = await res.text();
+      let data: { ok?: boolean; error?: string } = {};
+      try {
+        data = JSON.parse(raw) as typeof data;
+      } catch {
+        data = { error: raw.slice(0, 140) || `HTTP ${res.status}` };
+      }
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? `Erreur ${res.status}`);
+      }
       setLoomState("sent");
       setStage("loom_sent");
       router.refresh();
@@ -126,7 +140,7 @@ export function LeadDetailModal({
       setTimeout(() => onClose(), 1600);
     } catch (err) {
       setLoomState("error");
-      setLoomError(err instanceof Error ? err.message : "Échec de l'envoi.");
+      setLoomError(err instanceof Error ? err.message : "Échec réseau — réessaie.");
     }
   }
 
@@ -303,7 +317,11 @@ export function LeadDetailModal({
                     Envoyer
                   </button>
                 </div>
-                {loomError && <p className="mt-1.5 text-[12px] text-danger">{loomError}</p>}
+                {loomError && (
+                  <p className="mt-2 rounded-xl bg-danger/10 px-3 py-2 text-[12.5px] font-medium text-danger">
+                    {loomError}
+                  </p>
+                )}
                 <p className="mt-1.5 text-[10.5px] text-muted/70">
                   Le prospect reçoit un mail avec le lien + ta signature. Réponse dirigée vers ta boîte d'envoi.
                 </p>
