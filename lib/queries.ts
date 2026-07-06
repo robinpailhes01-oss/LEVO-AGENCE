@@ -97,6 +97,20 @@ export function getPendingAuditsCount(): Promise<number> {
   }, 0);
 }
 
+/** Leads en « Loom envoyé » depuis 3+ jours sans avancer = à relancer. */
+export function getFollowUpCount(): Promise<number> {
+  return safe(async () => {
+    const threshold = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { count, error } = await supabaseAdmin()
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("stage", "loom_sent")
+      .lt("last_touch", threshold);
+    if (error) throw error;
+    return count ?? 0;
+  }, 0);
+}
+
 export function getNiches(): Promise<Niche[]> {
   return safe(async () => {
     const { data, error } = await supabaseAdmin()

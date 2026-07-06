@@ -6,7 +6,7 @@ import { Funnel } from "@/components/charts/Funnel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AGENTS_MOCK, todayLabel, type AgentMock, type AgentStatus } from "@/lib/mock";
-import { getOverview, getContent, getLeads, getPendingAuditsCount } from "@/lib/queries";
+import { getOverview, getContent, getLeads, getPendingAuditsCount, getFollowUpCount } from "@/lib/queries";
 import type { AgentLog, AgentName } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -37,12 +37,27 @@ const FUNNEL_MAP: { key: string; label: string }[] = [
 ];
 
 export default async function OverviewPage() {
-  const [ov, content, leads, pendingAudits] = await Promise.all([
+  const [ov, content, leads, pendingAudits, followUps] = await Promise.all([
     getOverview(),
     getContent(),
     getLeads(),
     getPendingAuditsCount(),
+    getFollowUpCount(),
   ]);
+
+  // Bulle ORION réelle (fini les faux chiffres) selon l'état du pipeline.
+  const orionSpeech =
+    pendingAudits > 0
+      ? `${pendingAudits} audit${pendingAudits > 1 ? "s" : ""} à traiter, prépare la démo.`
+      : followUps > 0
+        ? `${followUps} relance${followUps > 1 ? "s" : ""} à faire (Loom sans réponse).`
+        : `${ov.activeLeads} leads dans le pipeline.`;
+  const realSpeech: Record<string, string> = {
+    orion: orionSpeech,
+    luna: "En veille — bientôt à l'œuvre sur le contenu.",
+    hermes: "En veille — les rapports arrivent.",
+    veille: "En veille — surveillance à venir.",
+  };
 
   const ideasCount = content.filter((c) => c.status === "idea").length;
   const hasLeads = leads.length > 0;
@@ -55,8 +70,13 @@ export default async function OverviewPage() {
   };
 
   const agents: AgentMock[] = AGENTS_MOCK.map((a) => {
-    const snap = snapshot(a.name.toUpperCase() as AgentName, ov.logs, a.speech);
-    return { ...a, status: snap.status, speech: snap.speech, stat: stats[a.key] ?? a.stat };
+    const snap = snapshot(a.name.toUpperCase() as AgentName, ov.logs, realSpeech[a.key] ?? a.speech);
+    return {
+      ...a,
+      status: snap.status,
+      speech: realSpeech[a.key] ?? snap.speech,
+      stat: stats[a.key] ?? a.stat,
+    };
   });
 
   const kpis = [
@@ -105,6 +125,29 @@ export default async function OverviewPage() {
             </p>
           </div>
           <span className="shrink-0 rounded-full bg-danger px-2.5 py-1 text-[11px] font-semibold text-white">
+            Voir
+          </span>
+        </Link>
+      )}
+
+      {/* Relances : Loom envoyé depuis 3+ jours sans réponse */}
+      {followUps > 0 && (
+        <Link
+          href="/dashboard/orion"
+          className="levo-pressable flex items-center gap-3 rounded-2xl border border-warning/25 bg-warning/[0.07] px-4 py-3 transition-colors hover:bg-warning/[0.11]"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
+            <AlertCircle className="h-[18px] w-[18px]" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold text-ink">
+              {followUps} relance{followUps > 1 ? "s" : ""} à faire
+            </p>
+            <p className="text-[12.5px] text-muted">
+              Démo envoyée il y a 3 jours et toujours sans réponse — un petit rappel s'impose.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-warning px-2.5 py-1 text-[11px] font-semibold text-white">
             Voir
           </span>
         </Link>

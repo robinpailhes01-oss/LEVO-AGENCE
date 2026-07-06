@@ -122,6 +122,8 @@ export function LeadDetailModal({
       setLoomState("sent");
       setStage("loom_sent");
       router.refresh();
+      // Laisse voir le message de succès, puis ferme pour révéler le board rafraîchi.
+      setTimeout(() => onClose(), 1600);
     } catch (err) {
       setLoomState("error");
       setLoomError(err instanceof Error ? err.message : "Échec de l'envoi.");
