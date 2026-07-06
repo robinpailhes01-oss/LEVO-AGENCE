@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
 import { nextStage } from "@/lib/lead-stage";
 import { sendEmail } from "@/lib/resend";
+import { emailSignatureHtml } from "@/lib/brand";
 import type { LeadStage } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -123,8 +124,9 @@ async function sendAuditEmails(
         replyTo: sendingInbox ?? undefined,
         html: `<p>Bonjour ${prenom ?? ""},</p>
 <p>Merci d'avoir rempli votre audit gratuit — c'est bien reçu.</p>
-<p>Robin prépare maintenant votre démo personnalisée à partir de vos réponses, vous aurez de ses nouvelles très vite.</p>
-<p>À bientôt,<br/>L'équipe Levo</p>`,
+<p>Je prépare maintenant votre démo personnalisée à partir de vos réponses, vous aurez de mes nouvelles très vite.</p>
+<p>À bientôt,</p>
+${emailSignatureHtml()}`,
       });
     } catch (err) {
       console.error("[webhook:audit] email client échoué", err);

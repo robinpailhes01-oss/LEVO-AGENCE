@@ -85,6 +85,18 @@ export function getLatestAuditsByLead(): Promise<Record<string, Audit>> {
   }, {});
 }
 
+/** Nombre d'audits reçus mais pas encore traités (Loom non envoyé) = stage audit_received. */
+export function getPendingAuditsCount(): Promise<number> {
+  return safe(async () => {
+    const { count, error } = await supabaseAdmin()
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("stage", "audit_received");
+    if (error) throw error;
+    return count ?? 0;
+  }, 0);
+}
+
 export function getNiches(): Promise<Niche[]> {
   return safe(async () => {
     const { data, error } = await supabaseAdmin()

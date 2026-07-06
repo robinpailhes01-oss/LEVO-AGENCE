@@ -6,9 +6,11 @@ import { Funnel } from "@/components/charts/Funnel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AGENTS_MOCK, todayLabel, type AgentMock, type AgentStatus } from "@/lib/mock";
-import { getOverview, getContent, getLeads } from "@/lib/queries";
+import { getOverview, getContent, getLeads, getPendingAuditsCount } from "@/lib/queries";
 import type { AgentLog, AgentName } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +37,12 @@ const FUNNEL_MAP: { key: string; label: string }[] = [
 ];
 
 export default async function OverviewPage() {
-  const [ov, content, leads] = await Promise.all([getOverview(), getContent(), getLeads()]);
+  const [ov, content, leads, pendingAudits] = await Promise.all([
+    getOverview(),
+    getContent(),
+    getLeads(),
+    getPendingAuditsCount(),
+  ]);
 
   const ideasCount = content.filter((c) => c.status === "idea").length;
   const hasLeads = leads.length > 0;
@@ -79,6 +86,29 @@ export default async function OverviewPage() {
           <ChevronDown className="h-4 w-4 text-muted" />
         </button>
       </header>
+
+      {/* Urgence : audits à traiter */}
+      {pendingAudits > 0 && (
+        <Link
+          href="/dashboard/orion"
+          className="levo-pressable flex items-center gap-3 rounded-2xl border border-danger/20 bg-danger/[0.06] px-4 py-3 transition-colors hover:bg-danger/[0.09]"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger">
+            <AlertCircle className="h-[18px] w-[18px]" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold text-ink">
+              {pendingAudits} audit{pendingAudits > 1 ? "s" : ""} à traiter
+            </p>
+            <p className="text-[12.5px] text-muted">
+              Un prospect attend sa démo personnalisée — clique pour préparer et envoyer.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-danger px-2.5 py-1 text-[11px] font-semibold text-white">
+            Voir
+          </span>
+        </Link>
+      )}
 
       {/* Agents */}
       <section>

@@ -2,8 +2,36 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Mail, Phone, MapPin, Globe, Facebook, Linkedin, Loader2, ClipboardCheck } from "lucide-react";
+import { X, Mail, Phone, MapPin, Globe, Facebook, Linkedin, Loader2, ClipboardCheck, Send, Check } from "lucide-react";
 import type { Audit, Lead, LeadStage, Niche } from "@/lib/db";
+
+/** Libellés FR des questions d'audit (site vitrine). Clé inconnue → clé formatée. */
+const AUDIT_LABELS: Record<string, string> = {
+  secteur: "Secteur",
+  demandes_semaine: "Demandes / semaine",
+  temps_reponse: "Temps de réponse actuel",
+  devis_semaine: "Devis / semaine",
+  temps_devis: "Temps par devis",
+  clients_perdus: "Clients perdus / mois",
+  panier_moyen: "Panier moyen",
+  horizon: "Horizon du projet",
+};
+/** Champs déjà affichés ailleurs (en-tête, contact, stats) → exclus du détail. */
+const AUDIT_SKIP = new Set([
+  "prenom", "nom", "email", "entreprise", "taches", "temps_par_tache",
+  "heures_perdues_semaine", "perte_mensuelle_estimee",
+]);
+
+function renderAuditValue(v: unknown): string {
+  if (v === null || v === undefined || v === "") return "—";
+  if (Array.isArray(v)) return v.map((x) => taskLabel(String(x))).join(", ");
+  if (typeof v === "object") {
+    return Object.entries(v as Record<string, unknown>)
+      .map(([k, val]) => `${taskLabel(k)}: ${val}`)
+      .join(" · ");
+  }
+  return String(v);
+}
 
 const STAGE_LABELS: Record<string, string> = {
   new: "Nouveau",
@@ -48,6 +76,9 @@ export function LeadDetailModal({
   const router = useRouter();
   const [stage, setStage] = useState<LeadStage>(lead.stage);
   const [saving, setSaving] = useState(false);
+  const [loomUrl, setLoomUrl] = useState("");
+  const [loomState, setLoomState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [loomError, setLoomError] = useState<string | null>(null);
 
   const enrichment = (lead.enrichment_data ?? {}) as Record<string, unknown>;
   const phone = typeof enrichment.phone === "string" ? enrichment.phone : null;
@@ -73,6 +104,27 @@ export function LeadDetailModal({
       setStage(previous);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function sendLoom() {
+    if (!loomUrl.trim()) return;
+    setLoomState("sending");
+    setLoomError(null);
+    try {
+      const res = await fetch(`/api/leads/${lead.id}/loom`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loom_url: loomUrl.trim() }),
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "Échec de l'envoi.");
+      setLoomState("sent");
+      setStage("loom_sent");
+      router.refresh();
+    } catch (err) {
+      setLoomState("error");
+      setLoomError(err instanceof Error ? err.message : "Échec de l'envoi.");
     }
   }
 
@@ -163,45 +215,98 @@ export function LeadDetailModal({
           </div>
         )}
 
-        {audit?.answers && (
-          <div className="mt-4 rounded-2xl bg-orion/[0.06] p-3.5">
-            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-orion">
-              <ClipboardCheck className="h-3 w-3" /> Résultats de l'audit
-            </p>
-            {(() => {
-              const a = audit.answers as Record<string, unknown>;
-              const heures = typeof a.heures_perdues_semaine === "number" ? a.heures_perdues_semaine : null;
-              const perte = typeof a.perte_mensuelle_estimee === "number" ? a.perte_mensuelle_estimee : null;
-              const taches = Array.isArray(a.taches) ? (a.taches as string[]) : [];
-              return (
-                <>
-                  {(heures !== null || perte !== null) && (
-                    <div className="mb-2 flex gap-2">
-                      {heures !== null && (
-                        <div className="flex-1 rounded-xl bg-white px-3 py-2">
-                          <p className="text-[15px] font-semibold text-ink">{heures}h</p>
-                          <p className="text-[10.5px] text-muted">perdues / semaine</p>
-                        </div>
-                      )}
-                      {perte !== null && (
-                        <div className="flex-1 rounded-xl bg-white px-3 py-2">
-                          <p className="text-[15px] font-semibold text-ink">{perte}€</p>
-                          <p className="text-[10.5px] text-muted">perte estimée / mois</p>
-                        </div>
-                      )}
+        {audit?.answers && (() => {
+          const a = audit.answers as Record<string, unknown>;
+          const heures = typeof a.heures_perdues_semaine === "number" ? a.heures_perdues_semaine : null;
+          const perte = typeof a.perte_mensuelle_estimee === "number" ? a.perte_mensuelle_estimee : null;
+          const taches = Array.isArray(a.taches) ? (a.taches as string[]) : [];
+          const detailKeys = Object.keys(a).filter((k) => !AUDIT_SKIP.has(k) && a[k] !== null && a[k] !== "");
+          return (
+            <div className="mt-4 rounded-2xl bg-orion/[0.06] p-3.5">
+              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-orion">
+                <ClipboardCheck className="h-3 w-3" /> Rapport d'audit
+              </p>
+              {(heures !== null || perte !== null) && (
+                <div className="mb-3 flex gap-2">
+                  {heures !== null && (
+                    <div className="flex-1 rounded-xl bg-white px-3 py-2">
+                      <p className="text-[15px] font-semibold text-ink">{heures}h</p>
+                      <p className="text-[10.5px] text-muted">perdues / semaine</p>
                     </div>
                   )}
-                  {taches.length > 0 && (
-                    <p className="text-[12.5px] text-ink">
-                      Tâches chronophages : {taches.map(taskLabel).join(", ")}
-                    </p>
+                  {perte !== null && (
+                    <div className="flex-1 rounded-xl bg-white px-3 py-2">
+                      <p className="text-[15px] font-semibold text-ink">{perte}€</p>
+                      <p className="text-[10.5px] text-muted">perte estimée / mois</p>
+                    </div>
                   )}
-                </>
-              );
-            })()}
-            <p className="mt-2 text-[10.5px] text-muted/70">
-              Soumis le {audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString("fr-FR") : "—"}
-            </p>
+                </div>
+              )}
+              {taches.length > 0 && (
+                <div className="mb-3">
+                  <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted">Tâches chronophages</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {taches.map((t) => (
+                      <span key={t} className="rounded-full bg-white px-2 py-0.5 text-[11.5px] text-ink">{taskLabel(t)}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {detailKeys.length > 0 && (
+                <dl className="divide-y divide-black/[0.06] rounded-xl bg-white/60 px-3">
+                  {detailKeys.map((k) => (
+                    <div key={k} className="flex items-start justify-between gap-3 py-1.5">
+                      <dt className="text-[12px] text-muted">{AUDIT_LABELS[k] ?? taskLabel(k)}</dt>
+                      <dd className="text-right text-[12.5px] font-medium text-ink">{renderAuditValue(a[k])}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              <p className="mt-2 text-[10.5px] text-muted/70">
+                Soumis le {audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString("fr-FR") : "—"}
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* Envoi de la démo (Loom) — dispo dès qu'un audit est arrivé */}
+        {audit && (
+          <div className="mt-4 rounded-2xl border border-orion/20 p-3.5">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-orion">Envoyer la démo</p>
+            {audit.loom_url && loomState !== "sent" ? (
+              <p className="mb-2 text-[12px] text-success">
+                ✓ Démo déjà envoyée (<a href={audit.loom_url} target="_blank" rel="noreferrer" className="underline">lien</a>)
+              </p>
+            ) : null}
+            {loomState === "sent" ? (
+              <p className="flex items-center gap-1.5 text-[13px] font-medium text-success">
+                <Check className="h-4 w-4" /> Démo envoyée — lead passé en « Loom envoyé »
+              </p>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={loomUrl}
+                    onChange={(e) => setLoomUrl(e.target.value)}
+                    placeholder="Colle le lien Loom ici…"
+                    className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2 text-[13px] outline-none focus:border-orion"
+                  />
+                  <button
+                    onClick={sendLoom}
+                    disabled={loomState === "sending" || !loomUrl.trim()}
+                    className="levo-pressable flex shrink-0 items-center gap-1.5 rounded-xl bg-orion px-3 py-2 text-[13px] font-medium text-white disabled:opacity-50"
+                  >
+                    {loomState === "sending" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                    Envoyer
+                  </button>
+                </div>
+                {loomError && <p className="mt-1.5 text-[12px] text-danger">{loomError}</p>}
+                <p className="mt-1.5 text-[10.5px] text-muted/70">
+                  Le prospect reçoit un mail avec le lien + ta signature. Réponse dirigée vers ta boîte d'envoi.
+                </p>
+              </>
+            )}
           </div>
         )}
 
