@@ -35,6 +35,26 @@ const { GET, POST } = mcpRoute("leads", [
     },
   },
   {
+    name: "reset_lead",
+    description: "Remet un lead à l'état de départ (stage=new, opens=0) et efface ses données de test (replies, audits, email_events). Pour repartir propre.",
+    input: { id: "string" },
+    run: async (input) => {
+      const id = requireStr(input, "id");
+      const db = supabaseAdmin();
+      await db.from("replies").delete().eq("lead_id", id);
+      await db.from("audits").delete().eq("lead_id", id);
+      await db.from("email_events").delete().eq("lead_id", id);
+      const { error } = await db.from("leads").update({
+        stage: "new",
+        opens: 0,
+        last_event_at: null,
+        last_touch: null,
+      }).eq("id", id);
+      if (error) throw new Error(error.message);
+      return { ok: true, reset: id };
+    },
+  },
+  {
     name: "count_leads",
     description: "Compte exact des leads (total, ou par niche/stage/statut). Contrairement à get_leads, pas plafonné à 1000.",
     input: { niche_id: "string?", stage: "string?", status: "string?" },
