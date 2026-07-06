@@ -44,30 +44,59 @@ export async function POST(req: Request): Promise<Response> {
 
   console.log("[webhook:audit]", JSON.stringify(body));
 
-  if (!body.lead_id) {
-    return new Response(JSON.stringify({ ok: false, error: "`lead_id` requis" }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
   const db = supabaseAdmin();
-  const { data: lead } = await db
-    .from("leads")
-    .select("id, stage, niche_id, email, company, full_name")
-    .eq("id", body.lead_id)
-    .maybeSingle();
-  if (!lead) {
-    return new Response(JSON.stringify({ ok: false, error: "Lead introuvable" }), {
-      status: 404,
-      headers: { "content-type": "application/json" },
-    });
-  }
-  const row = lead as {
+  const answers = body.answers ?? {};
+  const answerEmail = typeof answers.email === "string" ? answers.email.trim().toLowerCase() : null;
+
+  type LeadRow = {
     id: string; stage: LeadStage; niche_id: string | null;
     email: string | null; company: string | null; full_name: string | null;
   };
-  const answers = body.answers ?? {};
+  const cols = "id, stage, niche_id, email, company, full_name";
+
+  // 1) Lien personnalisé (?lead=<id>) → on rattache à ce lead précis.
+  let row: LeadRow | null = null;
+  if (body.lead_id) {
+    const { data } = await db.from("leads").select(cols).eq("id", body.lead_id).maybeSingle();
+    row = (data as LeadRow | null) ?? null;
+  }
+  // 2) Sinon, si l'email correspond à un lead déjà en base → on le rattache (pas de doublon).
+  if (!row && answerEmail) {
+    const { data } = await db.from("leads").select(cols).ilike("email", answerEmail).maybeSingle();
+    row = (data as LeadRow | null) ?? null;
+  }
+  // 3) Sinon → nouveau lead créé depuis les réponses de l'audit, directement en "Audit reçu".
+  if (!row) {
+    if (!answerEmail) {
+      return new Response(JSON.stringify({ ok: false, error: "Ni lead_id ni email — audit ignoré." }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    const prenom = typeof answers.prenom === "string" ? answers.prenom : null;
+    const nom = typeof answers.nom === "string" ? answers.nom : null;
+    const entreprise = typeof answers.entreprise === "string" ? answers.entreprise : null;
+    const secteur = typeof answers.secteur === "string" ? answers.secteur : null;
+    const fullName = [prenom, nom].filter(Boolean).join(" ") || entreprise || answerEmail;
+    const { data: created, error: createErr } = await db
+      .from("leads")
+      .insert({
+        email: answerEmail,
+        first_name: prenom,
+        full_name: fullName,
+        company: entreprise,
+        sector: secteur,
+        source: "website",
+        status: "responded",
+        stage: "audit_received",
+        assigned_agent: "ORION",
+        exported_at: new Date().toISOString(), // déjà entrant : ne pas le renvoyer en campagne
+      })
+      .select(cols)
+      .single();
+    if (createErr) throw new Error(createErr.message);
+    row = created as LeadRow;
+  }
 
   await db.from("audits").insert({
     lead_id: row.id,
