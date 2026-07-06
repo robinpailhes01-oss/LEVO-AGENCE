@@ -41,7 +41,8 @@ const { GET, POST } = mcpRoute("leads", [
     run: async (input) => {
       const db = supabaseAdmin();
       const now = new Date().toISOString();
-      let q = db.from("leads").update({ exported_at: now });
+      // PostgREST refuse un UPDATE sans WHERE → on cible tous les leads (id non null).
+      let q = db.from("leads").update({ exported_at: now }).not("id", "is", null);
       const nicheId = str(input, "niche_id");
       if (nicheId) q = q.eq("niche_id", nicheId);
       if (input.only_new === true) q = q.is("exported_at", null);
