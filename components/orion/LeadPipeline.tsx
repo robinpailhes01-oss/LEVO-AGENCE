@@ -68,7 +68,9 @@ export function LeadPipeline({
     </button>
   );
 
-  const exportHref = `/api/export/leads${nicheId !== "all" && nicheId !== "none" ? `?niche_id=${nicheId}` : ""}`;
+  const nicheParam = nicheId !== "all" && nicheId !== "none" ? `?niche_id=${nicheId}` : "";
+  const exportNewHref = `/api/export/leads${nicheParam}`;
+  const exportAllHref = `/api/export/leads${nicheParam}${nicheParam ? "&" : "?"}all=1`;
 
   return (
     <div className="space-y-4">
@@ -79,13 +81,23 @@ export function LeadPipeline({
           {niches.map((n) => chip(n.id, n.name))}
           {countFor("none") > 0 && chip("none", "Sans niche")}
         </div>
-        <a
-          href={exportHref}
-          className="levo-pressable flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-medium text-ink shadow-xs hover:text-orion"
-        >
-          <Download className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Exporter CSV</span>
-        </a>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <a
+            href={exportNewHref}
+            title="Exporte uniquement les nouveaux leads (jamais exportés)"
+            className="levo-pressable flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-medium text-ink shadow-xs hover:text-orion"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Exporter nouveaux</span>
+          </a>
+          <a
+            href={exportAllHref}
+            title="Réexporte tous les leads, même déjà envoyés"
+            className="levo-pressable rounded-full bg-white px-2.5 py-1.5 text-[11px] font-medium text-muted shadow-xs hover:text-ink"
+          >
+            Tout
+          </a>
+        </div>
       </div>
 
       {visible.length === 0 ? (

@@ -94,6 +94,7 @@ export interface Lead {
   opens: number;
   last_event_at: string | null;
   last_touch: string | null;
+  exported_at: string | null;
   notes: string | null;
   assigned_agent: string | null;
   pain_points: string[] | null;

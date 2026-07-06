@@ -35,6 +35,22 @@ const { GET, POST } = mcpRoute("leads", [
     },
   },
   {
+    name: "mark_exported",
+    description: "Marque des leads comme déjà exportés vers Instantly (ne ressortiront plus au prochain CSV). Filtrable par niche, sinon tous.",
+    input: { niche_id: "string?", only_new: "boolean?" },
+    run: async (input) => {
+      const db = supabaseAdmin();
+      const now = new Date().toISOString();
+      let q = db.from("leads").update({ exported_at: now });
+      const nicheId = str(input, "niche_id");
+      if (nicheId) q = q.eq("niche_id", nicheId);
+      if (input.only_new === true) q = q.is("exported_at", null);
+      const { data, error } = await q.select("id");
+      if (error) throw new Error(error.message);
+      return { marked: (data ?? []).length };
+    },
+  },
+  {
     name: "reset_lead",
     description: "Remet un lead à l'état de départ (stage=new, opens=0) et efface ses données de test (replies, audits, email_events). Pour repartir propre.",
     input: { id: "string" },
