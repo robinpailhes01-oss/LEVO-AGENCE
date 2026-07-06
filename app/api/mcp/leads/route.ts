@@ -35,6 +35,21 @@ const { GET, POST } = mcpRoute("leads", [
     },
   },
   {
+    name: "delete_lead",
+    description: "Supprime définitivement un lead et ses données liées (replies, audits, email_events).",
+    input: { id: "string" },
+    run: async (input) => {
+      const id = requireStr(input, "id");
+      const db = supabaseAdmin();
+      await db.from("replies").delete().eq("lead_id", id);
+      await db.from("audits").delete().eq("lead_id", id);
+      await db.from("email_events").delete().eq("lead_id", id);
+      const { error } = await db.from("leads").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      return { ok: true, deleted: id };
+    },
+  },
+  {
     name: "mark_exported",
     description: "Marque des leads comme déjà exportés vers Instantly (ne ressortiront plus au prochain CSV). Filtrable par niche, sinon tous.",
     input: { niche_id: "string?", only_new: "boolean?" },
