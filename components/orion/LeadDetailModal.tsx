@@ -62,6 +62,20 @@ function taskLabel(key: string): string {
   return key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
+function frDate(iso: string | null | undefined): string {
+  return iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—";
+}
+function daysSince(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+}
+function agoLabel(days: number | null): string {
+  if (days === null) return "";
+  if (days <= 0) return "aujourd'hui";
+  if (days === 1) return "il y a 1 jour";
+  return `il y a ${days} jours`;
+}
+
 export function LeadDetailModal({
   lead,
   niche,
@@ -279,11 +293,30 @@ export function LeadDetailModal({
                 </dl>
               )}
               <p className="mt-2 text-[10.5px] text-muted/70">
-                Soumis le {audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString("fr-FR") : "—"}
+                Audit reçu le {frDate(audit.submitted_at)} ({agoLabel(daysSince(audit.submitted_at))})
               </p>
             </div>
           );
         })()}
+
+        {/* Suivi des dates clés — utile pour les relances */}
+        {(stage === "loom_sent" || stage === "follow_up") && lead.last_touch && (
+          <div className="mt-4 flex items-center gap-2.5 rounded-2xl bg-black/[0.025] px-3.5 py-2.5">
+            <Send className="h-3.5 w-3.5 shrink-0 text-muted" />
+            <p className="text-[12.5px] text-ink">
+              Démo (Loom) envoyée le <strong>{frDate(lead.last_touch)}</strong>
+              {(() => {
+                const d = daysSince(lead.last_touch);
+                if (d === null) return null;
+                return (
+                  <span className={d >= 3 ? "font-semibold text-warning" : "text-muted"}>
+                    {" "}· {agoLabel(d)}{d >= 3 ? " — relance conseillée" : ""}
+                  </span>
+                );
+              })()}
+            </p>
+          </div>
+        )}
 
         {/* Envoi de la démo (Loom) — dispo dès qu'un audit est arrivé */}
         {audit && (

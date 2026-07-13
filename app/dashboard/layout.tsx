@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { AutoRefresh } from "@/components/layout/AutoRefresh";
 import { authEnabled } from "@/lib/auth";
 import { getRecentReplies, getPendingAuditsCount, getFollowUpCount } from "@/lib/queries";
 
@@ -18,6 +19,7 @@ export default async function DashboardLayout({
   ]);
   return (
     <div className="min-h-screen">
+      <AutoRefresh />
       <Sidebar />
       <div className="md:pl-[248px]">
         <Header
