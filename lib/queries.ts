@@ -112,7 +112,7 @@ export function getUnreadReplyCount(): Promise<number> {
 export function getLatestAuditsByLead(): Promise<Record<string, Audit>> {
   return safe(async () => {
     const { data, error } = await supabaseAdmin()
-      .from("audits")
+      .from("lead_audits")
       .select("*")
       .order("submitted_at", { ascending: false });
     if (error) throw error;

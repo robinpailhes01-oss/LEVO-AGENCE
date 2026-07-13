@@ -98,7 +98,7 @@ export async function POST(req: Request): Promise<Response> {
     row = created as LeadRow;
   }
 
-  await db.from("audits").insert({
+  await db.from("lead_audits").insert({
     lead_id: row.id,
     niche_id: row.niche_id,
     status: "completed",

@@ -66,7 +66,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
   // Dernier audit du lead → prénom + entreprise + email de contact fournis dans l'audit.
   const { data: auditRow } = await db
-    .from("audits")
+    .from("lead_audits")
     .select("*")
     .eq("lead_id", id)
     .order("submitted_at", { ascending: false })
@@ -121,7 +121,7 @@ ${emailSignatureHtml()}`,
 
   // Trace le loom sur l'audit (si présent) + avance le stage.
   if (audit) {
-    await db.from("audits").update({ loom_url: loomUrl }).eq("id", audit.id);
+    await db.from("lead_audits").update({ loom_url: loomUrl }).eq("id", audit.id);
   }
   const newStage = nextStage(lead.stage as LeadStage, "loom_sent");
   await db

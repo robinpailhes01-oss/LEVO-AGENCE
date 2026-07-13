@@ -40,7 +40,7 @@ const { GET, POST } = mcpRoute("leads", [
     input: { lead_id: "string" },
     run: async (input) => {
       const { data, error } = await supabaseAdmin()
-        .from("audits")
+        .from("lead_audits")
         .select("*")
         .eq("lead_id", requireStr(input, "lead_id"))
         .order("submitted_at", { ascending: false });
@@ -66,7 +66,7 @@ const { GET, POST } = mcpRoute("leads", [
       const id = requireStr(input, "id");
       const db = supabaseAdmin();
       await db.from("replies").delete().eq("lead_id", id);
-      await db.from("audits").delete().eq("lead_id", id);
+      await db.from("lead_audits").delete().eq("lead_id", id);
       await db.from("email_events").delete().eq("lead_id", id);
       const { error } = await db.from("leads").delete().eq("id", id);
       if (error) throw new Error(error.message);
@@ -98,7 +98,7 @@ const { GET, POST } = mcpRoute("leads", [
       const id = requireStr(input, "id");
       const db = supabaseAdmin();
       await db.from("replies").delete().eq("lead_id", id);
-      await db.from("audits").delete().eq("lead_id", id);
+      await db.from("lead_audits").delete().eq("lead_id", id);
       await db.from("email_events").delete().eq("lead_id", id);
       const { error } = await db.from("leads").update({
         stage: "new",
