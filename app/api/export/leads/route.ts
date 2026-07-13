@@ -33,7 +33,10 @@ export async function GET(req: Request): Promise<Response> {
     if (nicheId) q = q.eq("niche_id", nicheId);
     if (stage) q = q.eq("stage", stage);
     if (!exportAll) q = q.is("exported_at", null); // par défaut : seulement les nouveaux
-    const { data, error } = await q.order("created_at", { ascending: true }).range(from, from + pageSize - 1);
+    const { data, error } = await q
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true }) // ordre total → pagination fiable (created_at non unique)
+      .range(from, from + pageSize - 1);
     if (error) return new Response(`Erreur : ${error.message}`, { status: 500 });
     leads.push(...((data ?? []) as Lead[]));
     if (!data || data.length < pageSize) break;

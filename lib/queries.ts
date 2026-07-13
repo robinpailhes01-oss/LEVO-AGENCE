@@ -48,7 +48,10 @@ export function getLeads(): Promise<Lead[]> {
       const { data, error } = await supabaseAdmin()
         .from("leads")
         .select("*")
+        // tri secondaire par id (unique) → ordre TOTAL déterministe : sans ça,
+        // avec des scores tous égaux, la pagination .range() saute des lignes.
         .order("score", { ascending: false })
+        .order("id", { ascending: true })
         .range(from, from + pageSize - 1);
       if (error) throw error;
       all.push(...((data ?? []) as Lead[]));
