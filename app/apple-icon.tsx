@@ -19,7 +19,7 @@ export default function AppleIcon() {
         }}
       >
         <div style={{ width: 20, height: 20, borderRadius: 20, background: "#1A3BFF" }} />
-        <div style={{ fontSize: 58, fontWeight: 700, color: "#ffffff", letterSpacing: -2 }}>Levo</div>
+        <div style={{ fontSize: 58, fontWeight: 700, color: "#ffffff", letterSpacing: -2 }}>Luma</div>
       </div>
     ),
     { ...size },

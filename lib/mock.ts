@@ -242,7 +242,7 @@ export const LUNA_BOARD: KanbanColumn<ContentCardMock>[] = [
     label: "Publié",
     items: [
       { title: "3 signes que ton Insta ne convertit pas", type: "Carrousel", slides: 8, date: "3 juin" },
-      { title: "La méthode Levo en 60s", type: "Reel", slides: 1, date: "1 juin" },
+      { title: "La méthode Luma en 60s", type: "Reel", slides: 1, date: "1 juin" },
     ],
   },
 ];

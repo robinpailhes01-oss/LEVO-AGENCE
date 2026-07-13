@@ -57,7 +57,7 @@ export function Sidebar() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-medium text-white">Robin</p>
-            <p className="truncate text-[11px] text-white/40">Levo · Montpellier</p>
+            <p className="truncate text-[11px] text-white/40">Luma · Montpellier</p>
           </div>
           <Link
             href="/dashboard/settings"

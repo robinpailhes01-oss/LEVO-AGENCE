@@ -3,9 +3,9 @@ import type { MetadataRoute } from "next";
 /** Manifest PWA — permet "Ajouter à l'écran d'accueil" (Android + iOS). */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Levo — Dashboard agents",
-    short_name: "Levo",
-    description: "Pilotage des agents IA de Levo (Montpellier).",
+    name: "Luma — Dashboard agents",
+    short_name: "Luma",
+    description: "Pilotage des agents IA de Luma (Montpellier).",
     start_url: "/dashboard",
     display: "standalone",
     background_color: "#0D1117",

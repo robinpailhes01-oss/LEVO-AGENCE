@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/** Levo wordmark — accent dot + Cormorant display. */
+/** Luma wordmark — accent dot + display face. */
 export function Logo({
   className,
   variant = "light",
@@ -17,7 +17,7 @@ export function Logo({
       )}
     >
       <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_12px_rgba(26,59,255,0.6)]" />
-      Levo
+      Luma
     </span>
   );
 }

@@ -2,9 +2,9 @@ import { User, Bell, Palette, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const SECTIONS = [
-  { icon: User, title: "Profil", desc: "Robin · harmonie@levo.fr" },
+  { icon: User, title: "Profil", desc: "Robin · robin@luma-agence.fr" },
   { icon: Bell, title: "Notifications", desc: "Alertes leads & validations" },
-  { icon: Palette, title: "Apparence", desc: "Thème clair · palette Levo" },
+  { icon: Palette, title: "Apparence", desc: "Thème clair · palette Luma" },
 ];
 
 export default function SettingsPage() {
@@ -39,7 +39,7 @@ export default function SettingsPage() {
       </div>
 
       <p className="text-center text-xs text-muted/70">
-        Levo Dashboard · version démo visuelle
+        Luma Dashboard · version démo visuelle
       </p>
     </div>
   );

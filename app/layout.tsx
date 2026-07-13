@@ -17,12 +17,12 @@ const display = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: "Levo — Dashboard agents",
-  description: "Pilotage des agents IA de Levo, agence IA à Montpellier.",
+  title: "Luma — Dashboard agents",
+  description: "Pilotage des agents IA de Luma, agence IA à Montpellier.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Levo",
+    title: "Luma",
     statusBarStyle: "black-translucent",
   },
 };

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 import { Logo } from "@/components/layout/Logo";
 
-export const metadata = { title: "Connexion — Levo" };
+export const metadata = { title: "Connexion — Luma" };
 
 export default function LoginPage() {
   return (
@@ -27,7 +27,7 @@ export default function LoginPage() {
           </Suspense>
         </div>
         <p className="mt-6 text-center text-xs text-muted/70">
-          © {new Date().getFullYear()} Levo. Tous droits réservés.
+          © {new Date().getFullYear()} Luma. Tous droits réservés.
         </p>
       </div>
     </main>
