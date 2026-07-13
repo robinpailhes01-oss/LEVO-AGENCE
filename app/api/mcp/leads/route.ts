@@ -35,6 +35,20 @@ const { GET, POST } = mcpRoute("leads", [
     },
   },
   {
+    name: "get_lead_audits",
+    description: "Liste les audits (table `audits`) rattachés à un lead — pour vérifier si un audit a bien été enregistré via notre webhook.",
+    input: { lead_id: "string" },
+    run: async (input) => {
+      const { data, error } = await supabaseAdmin()
+        .from("audits")
+        .select("*")
+        .eq("lead_id", requireStr(input, "lead_id"))
+        .order("submitted_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  },
+  {
     name: "delete_lead",
     description: "Supprime définitivement un lead et ses données liées (replies, audits, email_events).",
     input: { id: "string" },
