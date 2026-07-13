@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_noStore as noStore } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { hasSupabase } from "@/lib/env";
 import type {
@@ -19,6 +20,9 @@ import type {
  */
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  // Interdit tout cache (Data Cache Vercel / fetch cache Next) sur les lectures :
+  // le dashboard doit TOUJOURS refléter l'état réel de la base, jamais une copie figée.
+  noStore();
   if (!hasSupabase()) return fallback;
   try {
     return await fn();

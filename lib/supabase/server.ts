@@ -13,6 +13,11 @@ export function supabaseAdmin(): SupabaseClient {
   if (cached) return cached;
   cached = createClient(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      // Next.js met en cache les fetch par défaut → on force no-store pour que
+      // chaque lecture aille vraiment en base (pas de réponse figée servie à tous).
+      fetch: (url, options) => fetch(url, { ...options, cache: "no-store" }),
+    },
   });
   return cached;
 }
