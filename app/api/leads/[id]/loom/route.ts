@@ -108,7 +108,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       html: `<p>Bonjour ${prenom},</p>
 <p>Comme promis, j'ai préparé une démo personnalisée pour ${entreprise} à partir de vos réponses.</p>
 <p>👉 <a href="${loomUrl}" style="color:#1A3BFF">Voir votre démo</a></p>
-<p>Dites-moi ce que vous en pensez — et si vous voulez, on en discute 15 minutes.</p>
+<p>C'est un premier aperçu pour vous montrer ce qu'il est possible de faire — on peut évidemment aller encore plus loin et l'adapter précisément à votre fonctionnement.</p>
+<p>J'attends votre retour avec plaisir : dites-moi ce que vous en pensez, et si vous le souhaitez, on en échange 15 minutes.</p>
 ${emailSignatureHtml()}`,
     });
   } catch (err) {
