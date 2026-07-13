@@ -93,6 +93,7 @@ export function LeadDetailModal({
   const [loomUrl, setLoomUrl] = useState("");
   const [loomState, setLoomState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [loomError, setLoomError] = useState<string | null>(null);
+  const [relanceState, setRelanceState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   const enrichment = (lead.enrichment_data ?? {}) as Record<string, unknown>;
   const phone = typeof enrichment.phone === "string" ? enrichment.phone : null;
@@ -155,6 +156,19 @@ export function LeadDetailModal({
     } catch (err) {
       setLoomState("error");
       setLoomError(err instanceof Error ? err.message : "Échec réseau — réessaie.");
+    }
+  }
+
+  async function sendRelance() {
+    setRelanceState("sending");
+    try {
+      const res = await fetch(`/api/leads/${lead.id}/relance`, { method: "POST" });
+      const data = (await res.json()) as { ok: boolean };
+      if (!res.ok || !data.ok) throw new Error();
+      setRelanceState("sent");
+      router.refresh();
+    } catch {
+      setRelanceState("error");
     }
   }
 
@@ -299,22 +313,46 @@ export function LeadDetailModal({
           );
         })()}
 
-        {/* Suivi des dates clés — utile pour les relances */}
+        {/* Suivi des dates clés + relance — quand la démo est envoyée */}
         {(stage === "loom_sent" || stage === "follow_up") && lead.last_touch && (
-          <div className="mt-4 flex items-center gap-2.5 rounded-2xl bg-black/[0.025] px-3.5 py-2.5">
-            <Send className="h-3.5 w-3.5 shrink-0 text-muted" />
-            <p className="text-[12.5px] text-ink">
-              Démo (Loom) envoyée le <strong>{frDate(lead.last_touch)}</strong>
-              {(() => {
-                const d = daysSince(lead.last_touch);
-                if (d === null) return null;
-                return (
-                  <span className={d >= 3 ? "font-semibold text-warning" : "text-muted"}>
-                    {" "}· {agoLabel(d)}{d >= 3 ? " — relance conseillée" : ""}
-                  </span>
-                );
-              })()}
-            </p>
+          <div className="mt-4 rounded-2xl bg-black/[0.025] px-3.5 py-3">
+            <div className="flex items-center gap-2.5">
+              <Send className="h-3.5 w-3.5 shrink-0 text-muted" />
+              <p className="text-[12.5px] text-ink">
+                Démo envoyée le <strong>{frDate(lead.last_touch)}</strong>
+                {(() => {
+                  const d = daysSince(lead.last_touch);
+                  if (d === null) return null;
+                  return (
+                    <span className={d >= 3 ? "font-semibold text-warning" : "text-muted"}>
+                      {" "}· {agoLabel(d)}{d >= 3 ? " — relance conseillée" : ""}
+                    </span>
+                  );
+                })()}
+              </p>
+            </div>
+            <div className="mt-2.5">
+              {relanceState === "sent" ? (
+                <p className="flex items-center gap-1.5 text-[12.5px] font-medium text-success">
+                  <Check className="h-3.5 w-3.5" /> Relance envoyée — délai remis à zéro
+                </p>
+              ) : (
+                <button
+                  onClick={sendRelance}
+                  disabled={relanceState === "sending"}
+                  className="levo-pressable flex items-center gap-1.5 rounded-xl bg-orion px-3 py-2 text-[12.5px] font-medium text-white disabled:opacity-50"
+                >
+                  {relanceState === "sending" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  Envoyer une relance
+                </button>
+              )}
+              {relanceState === "error" && (
+                <p className="mt-1.5 text-[12px] text-danger">Échec de l'envoi — réessaie.</p>
+              )}
+              <p className="mt-1.5 text-[10.5px] text-muted/70">
+                Mail doux + lien de la démo, avec ta signature. Réponse dirigée vers ta boîte d'envoi.
+              </p>
+            </div>
           </div>
         )}
 
