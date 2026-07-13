@@ -19,6 +19,12 @@ const display = Inter_Tight({
 export const metadata: Metadata = {
   title: "Levo — Dashboard agents",
   description: "Pilotage des agents IA de Levo, agence IA à Montpellier.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Levo",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
