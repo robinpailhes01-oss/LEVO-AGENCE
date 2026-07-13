@@ -22,6 +22,36 @@ const TASK_LABELS: Record<string, string> = {
   rdv: "RDV",
 };
 
+const AUDIT_Q_LABELS: Record<string, string> = {
+  prenom: "Prénom",
+  nom: "Nom",
+  entreprise: "Entreprise",
+  secteur: "Secteur",
+  taches: "Tâches chronophages",
+  temps_par_tache: "Heures par tâche",
+  demandes_semaine: "Demandes / semaine",
+  temps_reponse: "Temps de réponse",
+  devis_semaine: "Devis / semaine",
+  temps_devis: "Temps par devis",
+  clients_perdus: "Clients perdus / mois",
+  panier_moyen: "Panier moyen",
+  horizon: "Horizon du projet",
+  heures_perdues_semaine: "Heures perdues / semaine",
+  perte_mensuelle_estimee: "Perte estimée / mois",
+};
+const AUDIT_Q_HIDE = new Set(["email"]);
+
+function auditValue(v: unknown): string {
+  if (v === null || v === undefined || v === "") return "—";
+  if (Array.isArray(v)) return v.map((x) => TASK_LABELS[String(x)] ?? String(x)).join(", ");
+  if (typeof v === "object") {
+    return Object.entries(v as Record<string, unknown>)
+      .map(([k, val]) => `${TASK_LABELS[k] ?? k}: ${val}`)
+      .join(" · ");
+  }
+  return String(v);
+}
+
 export const dynamic = "force-dynamic";
 
 function snapshot(
@@ -170,6 +200,23 @@ export default async function OverviewPage() {
                     ))}
                   </div>
                 )}
+
+                {/* Rapport complet dépliable — HTML natif, toujours fonctionnel */}
+                <details className="mt-3 group">
+                  <summary className="cursor-pointer list-none text-[12px] font-medium text-orion hover:underline">
+                    Voir le rapport complet ▾
+                  </summary>
+                  <dl className="mt-2 divide-y divide-black/[0.06] rounded-xl bg-black/[0.02] px-3">
+                    {Object.keys(a.answers)
+                      .filter((k) => !AUDIT_Q_HIDE.has(k) && a.answers[k] !== null && a.answers[k] !== "")
+                      .map((k) => (
+                        <div key={k} className="flex items-start justify-between gap-3 py-1.5">
+                          <dt className="text-[11.5px] text-muted">{AUDIT_Q_LABELS[k] ?? k}</dt>
+                          <dd className="text-right text-[12px] font-medium text-ink">{auditValue(a.answers[k])}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                </details>
 
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-[11px] text-muted">

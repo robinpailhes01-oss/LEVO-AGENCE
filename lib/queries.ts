@@ -138,6 +138,7 @@ export interface PendingAudit {
   taches: string[];
   horizon: string | null;
   submittedAt: string;
+  answers: Record<string, unknown>;
 }
 
 /** Audits reçus à traiter, avec leurs réponses — pour la section d'accueil (rendu serveur). */
@@ -175,6 +176,7 @@ export function getPendingAudits(): Promise<PendingAudit[]> {
         taches: Array.isArray(ans.taches) ? (ans.taches as string[]) : [],
         horizon: s(ans.horizon),
         submittedAt: (audit?.submitted_at as string) ?? l.created_at,
+        answers: ans,
       };
     });
   }, []);
