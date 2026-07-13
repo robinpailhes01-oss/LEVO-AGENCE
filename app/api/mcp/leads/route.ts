@@ -49,6 +49,16 @@ const { GET, POST } = mcpRoute("leads", [
     },
   },
   {
+    name: "inspect_audits_table",
+    description: "Debug : renvoie les colonnes réelles de la table `audits` en base (via une ligne existante ou un select vide).",
+    run: async () => {
+      const { data, error } = await supabaseAdmin().from("audits").select("*").limit(3);
+      if (error) return { error: error.message };
+      return { columns: data && data[0] ? Object.keys(data[0]) : "table vide — colonnes inconnues", rows: data };
+    },
+    input: {},
+  },
+  {
     name: "delete_lead",
     description: "Supprime définitivement un lead et ses données liées (replies, audits, email_events).",
     input: { id: "string" },
