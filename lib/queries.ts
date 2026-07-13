@@ -127,6 +127,59 @@ export function getLatestAuditsByLead(): Promise<Record<string, Audit>> {
   }, {});
 }
 
+export interface PendingAudit {
+  leadId: string;
+  company: string;
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  perte: number | null;
+  heures: number | null;
+  taches: string[];
+  horizon: string | null;
+  submittedAt: string;
+}
+
+/** Audits reçus à traiter, avec leurs réponses — pour la section d'accueil (rendu serveur). */
+export function getPendingAudits(): Promise<PendingAudit[]> {
+  return safe(async () => {
+    const db = supabaseAdmin();
+    const { data: leadsData } = await db.from("leads").select("*").eq("stage", "audit_received");
+    const list = (leadsData ?? []) as Lead[];
+    if (list.length === 0) return [];
+    const { data: auditsData } = await db
+      .from("lead_audits")
+      .select("*")
+      .in("lead_id", list.map((l) => l.id))
+      .order("submitted_at", { ascending: false });
+    const byLead = new Map<string, Record<string, unknown>>();
+    for (const a of auditsData ?? []) {
+      const row = a as Record<string, unknown>;
+      const lid = row.lead_id as string | null;
+      if (lid && !byLead.has(lid)) byLead.set(lid, row);
+    }
+    return list.map((l) => {
+      const audit = byLead.get(l.id);
+      const ans = ((audit?.answers as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+      const enr = (l.enrichment_data ?? {}) as Record<string, unknown>;
+      const s = (v: unknown): string | null => (typeof v === "string" && v ? v : null);
+      const n = (v: unknown): number | null => (typeof v === "number" ? v : null);
+      return {
+        leadId: l.id,
+        company: s(ans.entreprise) ?? l.company ?? l.full_name ?? "Prospect",
+        contactName: [ans.prenom, ans.nom].filter((x) => typeof x === "string" && x).join(" ") || null,
+        email: s(ans.email) ?? l.email,
+        phone: s(enr.phone) ?? s(ans.telephone),
+        perte: n(ans.perte_mensuelle_estimee),
+        heures: n(ans.heures_perdues_semaine),
+        taches: Array.isArray(ans.taches) ? (ans.taches as string[]) : [],
+        horizon: s(ans.horizon),
+        submittedAt: (audit?.submitted_at as string) ?? l.created_at,
+      };
+    });
+  }, []);
+}
+
 /** Nombre d'audits reçus mais pas encore traités (Loom non envoyé) = stage audit_received. */
 export function getPendingAuditsCount(): Promise<number> {
   return safe(async () => {

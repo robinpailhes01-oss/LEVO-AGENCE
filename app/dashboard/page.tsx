@@ -6,11 +6,21 @@ import { Funnel } from "@/components/charts/Funnel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AGENTS_MOCK, todayLabel, type AgentMock, type AgentStatus } from "@/lib/mock";
-import { getOverview, getContent, getLeads, getPendingAuditsCount, getFollowUpCount } from "@/lib/queries";
+import { getOverview, getContent, getLeads, getPendingAuditsCount, getFollowUpCount, getPendingAudits } from "@/lib/queries";
 import type { AgentLog, AgentName } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Mail, Phone, ClipboardCheck } from "lucide-react";
+
+const TASK_LABELS: Record<string, string> = {
+  reponses_clients: "Réponses clients",
+  devis: "Devis",
+  relances: "Relances",
+  facturation: "Facturation",
+  contenu: "Contenu",
+  seo: "SEO",
+  rdv: "RDV",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +47,13 @@ const FUNNEL_MAP: { key: string; label: string }[] = [
 ];
 
 export default async function OverviewPage() {
-  const [ov, content, leads, pendingAudits, followUps] = await Promise.all([
+  const [ov, content, leads, pendingAudits, followUps, auditsToTreat] = await Promise.all([
     getOverview(),
     getContent(),
     getLeads(),
     getPendingAuditsCount(),
     getFollowUpCount(),
+    getPendingAudits(),
   ]);
 
   // Bulle ORION réelle (fini les faux chiffres) selon l'état du pipeline.
@@ -107,27 +118,75 @@ export default async function OverviewPage() {
         </button>
       </header>
 
-      {/* Urgence : audits à traiter */}
-      {pendingAudits > 0 && (
-        <Link
-          href="/dashboard/orion"
-          className="levo-pressable flex items-center gap-3 rounded-2xl border border-danger/20 bg-danger/[0.06] px-4 py-3 transition-colors hover:bg-danger/[0.09]"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger">
-            <AlertCircle className="h-[18px] w-[18px]" />
-          </span>
-          <div className="min-w-0 flex-1">
+      {/* Audits à traiter — liste détaillée (rendu serveur, toujours à jour) */}
+      {auditsToTreat.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-danger/15 text-danger">
+              <ClipboardCheck className="h-3.5 w-3.5" />
+            </span>
             <p className="text-[14px] font-semibold text-ink">
-              {pendingAudits} audit{pendingAudits > 1 ? "s" : ""} à traiter
+              {auditsToTreat.length} audit{auditsToTreat.length > 1 ? "s" : ""} à traiter
             </p>
-            <p className="text-[12.5px] text-muted">
-              Un prospect attend sa démo personnalisée — clique pour préparer et envoyer.
-            </p>
+            <span className="text-[12.5px] text-muted">— prépare la démo pour ces prospects</span>
           </div>
-          <span className="shrink-0 rounded-full bg-danger px-2.5 py-1 text-[11px] font-semibold text-white">
-            Voir
-          </span>
-        </Link>
+          <div className="grid gap-3 md:grid-cols-2">
+            {auditsToTreat.map((a) => (
+              <div key={a.leadId} className="levo-card border border-danger/15 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-semibold text-ink">{a.company}</p>
+                    {a.contactName && <p className="text-[12.5px] text-muted">{a.contactName}</p>}
+                  </div>
+                  {a.perte !== null && (
+                    <div className="shrink-0 rounded-xl bg-danger/[0.08] px-2.5 py-1 text-right">
+                      <p className="text-[14px] font-semibold text-danger">{a.perte.toLocaleString("fr-FR")} €</p>
+                      <p className="text-[9.5px] text-muted">perte / mois</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-2.5 space-y-1">
+                  {a.email && (
+                    <p className="flex items-center gap-1.5 text-[12.5px] text-ink">
+                      <Mail className="h-3.5 w-3.5 text-muted" />
+                      <a href={`mailto:${a.email}`} className="truncate hover:text-orion">{a.email}</a>
+                    </p>
+                  )}
+                  {a.phone && (
+                    <p className="flex items-center gap-1.5 text-[12.5px] text-ink">
+                      <Phone className="h-3.5 w-3.5 text-muted" />
+                      <a href={`tel:${a.phone}`} className="hover:text-orion">{a.phone}</a>
+                    </p>
+                  )}
+                </div>
+
+                {a.taches.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {a.taches.map((t) => (
+                      <span key={t} className="rounded-full bg-black/[0.05] px-2 py-0.5 text-[11px] text-ink">
+                        {TASK_LABELS[t] ?? t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-[11px] text-muted">
+                    {a.heures !== null ? `${a.heures} h/sem · ` : ""}
+                    {a.horizon ? `horizon : ${a.horizon}` : ""}
+                  </span>
+                  <Link
+                    href="/dashboard/orion"
+                    className="levo-pressable rounded-full bg-orion px-3 py-1 text-[11px] font-semibold text-white"
+                  >
+                    Traiter →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Relances : Loom envoyé depuis 3+ jours sans réponse */}
