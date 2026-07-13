@@ -11,6 +11,7 @@ import type { AgentLog, AgentName } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { AlertCircle, Mail, Phone, ClipboardCheck } from "lucide-react";
+import { AuditLoomAction } from "@/components/overview/AuditLoomAction";
 
 const TASK_LABELS: Record<string, string> = {
   reponses_clients: "Réponses clients",
@@ -218,18 +219,13 @@ export default async function OverviewPage() {
                   </dl>
                 </details>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-[11px] text-muted">
-                    {a.heures !== null ? `${a.heures} h/sem · ` : ""}
-                    {a.horizon ? `horizon : ${a.horizon}` : ""}
-                  </span>
-                  <Link
-                    href="/dashboard/orion"
-                    className="levo-pressable rounded-full bg-orion px-3 py-1 text-[11px] font-semibold text-white"
-                  >
-                    Traiter →
-                  </Link>
-                </div>
+                <p className="mt-3 text-[11px] text-muted">
+                  {a.heures !== null ? `${a.heures} h/sem · ` : ""}
+                  {a.horizon ? `horizon : ${a.horizon}` : ""}
+                </p>
+
+                {/* Envoi de la démo (Loom) directement depuis la carte */}
+                <AuditLoomAction leadId={a.leadId} />
               </div>
             ))}
           </div>
