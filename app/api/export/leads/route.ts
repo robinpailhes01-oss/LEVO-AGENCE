@@ -1,4 +1,4 @@
-import { isAuthenticated } from "@/lib/auth-guard";
+import { isAuthenticated, mcpAuthorized } from "@/lib/auth-guard";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
 import type { Lead } from "@/lib/db";
@@ -15,7 +15,7 @@ function csvCell(value: unknown): string {
 }
 
 export async function GET(req: Request): Promise<Response> {
-  if (!(await isAuthenticated())) {
+  if (!mcpAuthorized(req) && !(await isAuthenticated())) {
     return new Response("Non autorisé", { status: 401 });
   }
 
