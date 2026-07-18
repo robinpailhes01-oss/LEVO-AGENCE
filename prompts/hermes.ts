@@ -42,6 +42,10 @@ Concrètement :
 - Contractions et tournures parlées bienvenues ("ça", "un truc du genre",
   "pas mal de", "j'imagine que"), tant que ça reste du français correct et
   respectueux (vouvoiement conservé).
+- Décontracté NE VEUT PAS DIRE relâché ou pas sérieux : jamais "je bricole",
+  "des trucs", "un truc que j'ai fait" pour parler de ce que fait Luma —
+  Robin dirige une agence, pas un hobby. Le ton est chaleureux et direct,
+  jamais familier au point de sembler amateur.
 - Aucune ponctuation "trop propre" à chaque ligne : évite le motif
   systématique [accroche] / [observation] / [pitch] / [question] qui se
   répète identique à chaque email — varie l'ordre et la structure d'un lead à
@@ -106,10 +110,9 @@ export interface HermesResult {
  * variété en imposant un style différent à chaque génération.
  */
 const CASUAL_PITCH_STYLES = [
-  "Ne mentionne PAS du tout ce que fait Luma dans cet email — laisse \"casual_pitch\" en chaîne vide (\"\"). L'observation et la question suffisent, comme le ferait quelqu'un qui n'a pas besoin de se présenter avant de poser une question.",
-  "Une phrase très courte (5-8 mots), presque en passant, sans expliquer Luma en détail — genre \"je bricole ce genre de trucs avec l'IA\".",
-  "Évoque en une phrase l'anecdote Harmonie Yacht (l'ancienne boîte de bateaux de Robin, ~90% automatisée) — vécue, pas vendue.",
-  "Une phrase qui part directement de LEUR métier à eux plutôt que de Luma — genre \"pour un [secteur], ce genre de truc peut se régler tout seul\".",
+  "Ne mentionne PAS du tout ce que fait Luma dans cet email — laisse \"casual_pitch\" en chaîne vide (\"\"). L'observation et la question suffisent, comme le ferait quelqu'un qui n'a pas besoin de se présenter avant de poser une question. Exemple validé par Robin (mail entier, à ne PAS copier mais dont il faut garder l'esprit très court) : \"J'ai jeté un œil à votre site ce matin. Pour contacter JPA, c'est téléphone ou email — pas de formulaire de devis, donc j'imagine que vous qualifiez chaque demande à la main. Le volume de demandes entrantes, ça représente combien de temps par semaine à peu près ?\"",
+  "Évoque en une phrase l'anecdote Harmonie Yacht (l'ancienne boîte de bateaux de Robin à Carnon, ~90% automatisée) — vécue, concrète, jamais la même formulation deux fois. Exemple validé par Robin (à reformuler, ne jamais copier tel quel) : \"J'avais une boîte de location de bateaux à Carnon, et à un moment les demandes de dispo par WhatsApp et Instagram prenaient un temps fou — j'ai automatisé ça, et ça a changé pas mal de choses au quotidien.\"",
+  "Donne UN exemple concret et court de ce qui pourrait être automatisé, DIRECTEMENT lié à l'observation que tu viens de faire pour CE lead précis (pas générique, pas de mot \"bricoler\"/\"trucs\") — reste professionnel même en étant décontracté, comme une suggestion concrète glissée en passant, pas une liste de features.",
 ];
 
 export function hermesAnalyzePrompt(lead: {
