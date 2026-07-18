@@ -44,22 +44,34 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     const { data } = await db.from("leads").select("*").eq("id", reply.lead_id).maybeSingle();
     lead = (data as Lead) ?? null;
   }
+  // Filet de sécurité : si le webhook Instantly n'a pas su rattacher la réponse
+  // à un lead (ex: reply.lead_id jamais renseigné), on retente par email — sans
+  // ça le lien d'audit partirait sans ?lead=, donc identique pour tout le monde.
+  if (!lead) {
+    const { data } = await db.from("leads").select("*").ilike("email", to).maybeSingle();
+    lead = (data as Lead) ?? null;
+  }
+  if (!lead) {
+    return new Response(
+      JSON.stringify({ ok: false, error: `Aucun lead trouvé pour ${to} — impossible de générer un lien d'audit personnalisé.` }),
+      { status: 404, headers: { "content-type": "application/json" } },
+    );
+  }
 
   // Priorité au prénom trouvé par Hermes sur le site (souvent plus fiable que lead.first_name).
-  let firstName = lead?.first_name ?? "";
-  if (lead) {
-    const { data: analysis } = await db
-      .from("hermes_analyses")
-      .select("contact_first_name")
-      .eq("lead_id", lead.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const found = (analysis as { contact_first_name: string | null } | null)?.contact_first_name;
-    if (found) firstName = found;
-  }
+  let firstName = lead.first_name ?? "";
+  const { data: analysis } = await db
+    .from("hermes_analyses")
+    .select("contact_first_name")
+    .eq("lead_id", lead.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const found = (analysis as { contact_first_name: string | null } | null)?.contact_first_name;
+  if (found) firstName = found;
+
   const greeting = firstName ? `Bonjour ${firstName},` : "Bonjour,";
-  const auditLink = `${serverEnv.auditSiteUrl}/audit?lead=${lead?.id ?? ""}`;
+  const auditLink = `${serverEnv.auditSiteUrl}/audit?lead=${lead.id}`;
 
   try {
     await sendEmail({
@@ -83,9 +95,7 @@ ${emailSignatureHtml()}`,
   }
 
   await db.from("replies").update({ is_read: true }).eq("id", id);
-  if (lead) {
-    await db.from("leads").update({ last_touch: new Date().toISOString(), last_event_at: new Date().toISOString() }).eq("id", lead.id);
-  }
+  await db.from("leads").update({ last_touch: new Date().toISOString(), last_event_at: new Date().toISOString() }).eq("id", lead.id);
 
   return new Response(JSON.stringify({ ok: true, sent_to: to, audit_link: auditLink }), {
     status: 200,
