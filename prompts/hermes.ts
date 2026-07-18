@@ -115,17 +115,31 @@ const CASUAL_PITCH_STYLES = [
   "Donne UN exemple concret et court de ce qui pourrait être automatisé, DIRECTEMENT lié à l'observation que tu viens de faire pour CE lead précis (pas générique, pas de mot \"bricoler\"/\"trucs\") — reste professionnel même en étant décontracté, comme une suggestion concrète glissée en passant, pas une liste de features.",
 ];
 
+/**
+ * Même problème que pour casual_pitch, mais sur l'accroche : livré à
+ * lui-même, le modèle reconverge sur "J'ai regardé votre site avant de vous
+ * écrire." à quasi chaque génération. On force une manière différente d'ouvrir
+ * à chaque appel.
+ */
+const OPENING_STYLES = [
+  "Une phrase courte et factuelle sur ce que tu as vu, SANS utiliser 'j'ai regardé votre site avant de vous écrire' (déjà trop utilisé) — invente une autre formulation à chaque fois.",
+  "Saute directement dans le vif du sujet, sans aucune phrase de transition — la première ligne du mail EST déjà l'observation ou un fait, pas une annonce du type 'j'ai vu que'.",
+  "Ouvre sur une mention très courte et factuelle du secteur ou de la ville plutôt que du site lui-même (ex : 'Pour un [secteur] à [ville], ...').",
+  "Ouvre avec une touche de moment/contexte discrète ('ce matin', 'en passant', 'tout à l'heure') mais formulée différemment de 'j'ai jeté un œil à votre site ce matin'.",
+];
+
 export function hermesAnalyzePrompt(lead: {
   full_name: string | null;
   company: string | null;
   sector: string | null;
   city: string | null;
-}, websiteExcerpt: string | null, styleSeed: number): string {
+}, websiteExcerpt: string | null, styleSeed: number, openingSeed: number): string {
   const siteBlock = websiteExcerpt
     ? `Extrait du site web (texte visible, tronqué) :\n"""\n${websiteExcerpt}\n"""`
     : "Le site web n'a pas pu être analysé (absent, hors ligne, ou contenu insuffisant). Base-toi uniquement sur le secteur/la catégorie/la ville ci-dessous.";
 
   const pitchStyle = CASUAL_PITCH_STYLES[styleSeed % CASUAL_PITCH_STYLES.length];
+  const openingStyle = OPENING_STYLES[openingSeed % OPENING_STYLES.length];
 
   return `Lead à analyser :
 - Entreprise : ${lead.company ?? lead.full_name ?? "—"}
@@ -141,9 +155,12 @@ règles anti-IA du system prompt) :
   (celui le mieux étayé pour CE lead), en interne, 1 phrase.
 - "verified_observation" : LE constat concret et vérifiable — UNE phrase
   courte, dite simplement, jamais une affirmation qui ne peut pas être
-  déduite du contexte fourni.
-- "opening_line" : une entrée en matière très courte (≈8 mots), pas une
-  observation en soi, pas de formule de "hook" travaillée.
+  déduite du contexte fourni. N'ajoute PAS systématiquement une conclusion du
+  type "donc j'imagine que c'est géré à la main" à la fin — varie : parfois le
+  fait seul suffit, parfois la conclusion se glisse dans la question plutôt
+  qu'ici. Ne répète pas ce tic à chaque email.
+- "opening_line" : pour CETTE génération, ouvre avec CE style précis (imposé,
+  ne choisis pas toi-même) : ${openingStyle}
 - "casual_pitch" : pour CETTE génération, applique CE style précis (imposé,
   ne choisis pas toi-même) : ${pitchStyle}
 - "personalized_question" : la question de fin de mail, courte, curieuse,
