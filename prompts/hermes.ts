@@ -94,7 +94,8 @@ Rédige (JSON) :
 - "hook" : l'accroche (voir system prompt). Pour CETTE génération, ce style
   précis (imposé) : ${hookStyle}
 - "subject_line" : objet court, minuscule, personnel et décontracté (style
-  "petite question"), légèrement varié d'un lead à l'autre.
+  "petite question"), légèrement varié d'un lead à l'autre. JAMAIS le mot
+  "IA" ni de jargon dans l'objet (ça braque et finit en spam).
 - "confidence_score" : 0-100, à quel point l'accroche est ancrée dans des
   faits réels (site analysé en détail = élevé ; secteur seul = bas, sous 40).
 - "contact_first_name" : le PRÉNOM d'un contact/dirigeant si explicitement
