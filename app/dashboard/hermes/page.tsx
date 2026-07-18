@@ -1,4 +1,4 @@
-import { Sparkles, Inbox, Download, Phone, Globe, MapPin } from "lucide-react";
+import { Sparkles, Inbox, Download, Phone, Globe, MapPin, User } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { HermesAnalyzeButton } from "@/components/hermes/HermesAnalyzeButton";
 import { HermesDraftCard } from "@/components/hermes/HermesDraftCard";
@@ -93,6 +93,11 @@ export default async function HermesPage() {
                     )}
                     {item.lead?.city && (
                       <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {item.lead.city}</span>
+                    )}
+                    {item.contact_first_name && (
+                      <span className="flex items-center gap-1 font-medium text-success">
+                        <User className="h-3 w-3" /> Prénom identifié : {item.contact_first_name}
+                      </span>
                     )}
                   </div>
                 </div>

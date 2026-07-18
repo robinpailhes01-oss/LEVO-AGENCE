@@ -67,7 +67,7 @@ export async function GET(req: Request): Promise<Response> {
     const city = typeof enrichment.city === "string" ? enrichment.city : "";
     lines.push(
       [
-        lead.first_name ?? "",
+        a.contact_first_name || lead.first_name || "", // priorité au prénom trouvé par Hermes sur le site
         lead.company ?? "",
         lead.email,
         a.subject_line ?? "",

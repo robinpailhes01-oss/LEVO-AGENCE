@@ -74,6 +74,7 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
       personalized_question: result.personalized_question,
       opportunity_angle: result.opportunity_angle,
       confidence_score: Math.min(Math.max(Math.round(result.confidence_score ?? 0), 0), 100),
+      contact_first_name: result.contact_first_name ?? null,
       email_body: emailBody,
     })
     .select("*")

@@ -266,6 +266,7 @@ export interface HermesAnalysis {
   personalized_question: string | null;
   opportunity_angle: string | null;
   confidence_score: number | null;
+  contact_first_name: string | null;
   email_body: string | null;
   edited: boolean;
   reviewed_at: string | null;
