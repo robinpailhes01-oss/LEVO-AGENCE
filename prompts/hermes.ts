@@ -165,10 +165,19 @@ Renvoie UNIQUEMENT ce JSON : { "subject_line": string, "opening_line": string, "
  * ne jamais produire une salutation bancale.
  */
 export function assembleHermesEmail(result: HermesResult, senderFirstName = "Robin"): string {
+  // Garde-fou : si le modèle laisse opening_line en suspens malgré la
+  // consigne (pas de ponctuation finale), on le recolle à la suite de
+  // verified_observation sur le MÊME paragraphe plutôt que de couper la
+  // phrase par un saut de ligne — illisible sinon.
+  const opening = result.opening_line.trim();
+  const endsSentence = /[.!?…]["'»]?$/.test(opening);
+  const openingBlock = endsSentence ? opening : `${opening} ${result.verified_observation.trim()}`;
+  const observationBlock = endsSentence ? result.verified_observation : null;
+
   const blocks = [
     "{{greeting}}",
-    result.opening_line,
-    result.verified_observation,
+    openingBlock,
+    observationBlock,
     result.casual_pitch?.trim() || null, // omis si vide (style "no_pitch")
     result.personalized_question,
     senderFirstName,
