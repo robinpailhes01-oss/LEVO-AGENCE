@@ -79,10 +79,10 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       replyTo: reply.to_inbox ?? undefined,
       subject: "Voici le lien",
       html: `<p>${greeting}</p>
-<p>Merci pour votre retour !</p>
-<p>Pour vous préparer une démo vraiment personnalisée, j'ai besoin de mieux comprendre votre quotidien — j'ai un audit gratuit et rapide pour ça.</p>
-<p>En le remplissant, je pourrai vous créer une courte démo personnalisée, adaptée à votre entreprise :</p>
+<p>Merci pour votre retour, ça me parle !</p>
+<p>Pour vous préparer une démo qui colle vraiment à votre situation — et pas un truc générique — j'ai juste besoin de quelques infos sur votre quotidien. J'ai fait un court audit pour ça, ça prend 2 minutes :</p>
 <p>👉 <a href="${auditLink}" style="color:#1A3BFF">${auditLink}</a></p>
+<p>Une fois que je l'ai, je vous prépare votre démo personnalisée et je reviens vers vous.</p>
 <p>À très vite,</p>
 ${emailSignatureHtml()}`,
     });
