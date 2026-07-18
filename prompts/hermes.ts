@@ -119,7 +119,12 @@ Rédige les éléments suivants (JSON) :
 Renvoie UNIQUEMENT ce JSON : { "subject_line": string, "opening_line": string, "verified_observation": string, "personalized_question": string, "opportunity_angle": string, "confidence_score": number, "contact_first_name": string | null }`;
 }
 
-/** Assemble l'email complet (gabarit validé par Robin + mention de l'audit/démo gratuits). */
+/**
+ * Assemble l'email complet (gabarit validé par Robin). Un seul ask : la
+ * question ouverte — pas de lien d'audit dans le mail 1 (moins de friction,
+ * plus de réponses). L'audit/démo est proposé une fois qu'ils répondent
+ * (cf. le mail de relance après intérêt).
+ */
 export function assembleHermesEmail(result: HermesResult, senderFirstName = "Robin"): string {
   return `Bonjour {{first_name}},
 
@@ -128,8 +133,6 @@ ${result.opening_line}
 ${result.verified_observation}
 
 Chez Luma, nous créons des systèmes IA adaptés aux PME pour automatiser les tâches répétitives, mieux organiser leurs process et leur faire gagner du temps ou développer leur activité.
-
-D'ailleurs, si ça vous parle, on propose un audit gratuit et un premier aperçu de démo personnalisée à votre entreprise — sans aucun engagement.
 
 ${result.personalized_question}
 

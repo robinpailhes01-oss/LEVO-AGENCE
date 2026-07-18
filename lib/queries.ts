@@ -278,7 +278,11 @@ export function getHermesPendingCount(): Promise<number> {
   }, 0);
 }
 
-/** Leads nouveaux pas encore analysés par Hermes — candidats pour lancer une analyse. */
+/**
+ * Leads nouveaux pas encore analysés par Hermes — candidats pour lancer une
+ * analyse. Exclut aussi les leads déjà exportés (classique ou Hermes) pour
+ * ne jamais contacter deux fois le même prospect via deux campagnes.
+ */
 export function getHermesCandidates(limit = 20): Promise<Lead[]> {
   return safe(async () => {
     const db = supabaseAdmin();
@@ -286,6 +290,7 @@ export function getHermesCandidates(limit = 20): Promise<Lead[]> {
       .from("leads")
       .select("*")
       .eq("stage", "new")
+      .is("exported_at", null)
       .order("created_at", { ascending: false })
       .limit(limit * 3); // marge pour compenser les leads déjà analysés qu'on filtre ensuite
     if (error) throw error;

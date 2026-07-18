@@ -94,6 +94,10 @@ export async function GET(req: Request): Promise<Response> {
     "id",
     analyses.map((a) => a.id),
   );
+  // Stampe aussi leads.exported_at — même verrou que l'export classique, pour
+  // qu'un lead contacté via Hermes ne puisse plus ressortir dans un export
+  // "nouveaux leads" classique (et inversement).
+  await db.from("leads").update({ exported_at: now }).in("id", leadIds).is("exported_at", null);
 
   return new Response(lines.join("\n"), {
     status: 200,
