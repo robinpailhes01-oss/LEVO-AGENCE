@@ -6,12 +6,14 @@ export const runtime = "nodejs";
 
 /** Colonnes = variables Instantly attendues par le gabarit Hermes (cf. spec Robin). */
 const HEADERS = [
+  "greeting",
   "first_name",
   "company_name",
   "email",
   "subject_line",
   "opening_line",
   "verified_observation",
+  "casual_pitch",
   "personalized_question",
   "instagram_url",
   "sector",
@@ -20,6 +22,11 @@ const HEADERS = [
   "confidence_score",
   "lead_id",
 ];
+
+/** "Bonjour Julie," si un prénom est connu, sinon "Bonjour," (jamais de virgule/espace bancale). */
+function greetingFor(firstName: string | null): string {
+  return firstName ? `Bonjour ${firstName},` : "Bonjour,";
+}
 
 function csvCell(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
@@ -65,14 +72,17 @@ export async function GET(req: Request): Promise<Response> {
     if (!lead?.email) continue;
     const enrichment = (lead.enrichment_data ?? {}) as Record<string, unknown>;
     const city = typeof enrichment.city === "string" ? enrichment.city : "";
+    const firstName = a.contact_first_name || lead.first_name || null; // priorité au prénom trouvé par Hermes sur le site
     lines.push(
       [
-        a.contact_first_name || lead.first_name || "", // priorité au prénom trouvé par Hermes sur le site
+        greetingFor(firstName),
+        firstName ?? "",
         lead.company ?? "",
         lead.email,
         a.subject_line ?? "",
         a.opening_line ?? "",
         a.verified_observation ?? "",
+        a.casual_pitch ?? "",
         a.personalized_question ?? "",
         instagramUrl(lead.instagram_handle),
         lead.sector ?? "",

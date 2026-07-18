@@ -263,6 +263,7 @@ export interface HermesAnalysis {
   subject_line: string | null;
   opening_line: string | null;
   verified_observation: string | null;
+  casual_pitch: string | null;
   personalized_question: string | null;
   opportunity_angle: string | null;
   confidence_score: number | null;

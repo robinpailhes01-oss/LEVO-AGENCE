@@ -71,6 +71,7 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
       subject_line: result.subject_line,
       opening_line: result.opening_line,
       verified_observation: result.verified_observation,
+      casual_pitch: result.casual_pitch,
       personalized_question: result.personalized_question,
       opportunity_angle: result.opportunity_angle,
       confidence_score: Math.min(Math.max(Math.round(result.confidence_score ?? 0), 0), 100),
