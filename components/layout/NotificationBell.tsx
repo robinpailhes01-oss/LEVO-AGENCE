@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, AlertCircle, Clock, MessageSquare, X, Reply, Trash2 } from "lucide-react";
+import { Bell, AlertCircle, Clock, MessageSquare, X, Reply, Trash2, Send, Check, Loader2 } from "lucide-react";
 import type { ReplyWithLead } from "@/lib/queries";
 
 export function NotificationBell({
@@ -17,6 +17,7 @@ export function NotificationBell({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState(replies);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [auditState, setAuditState] = useState<Record<string, "idle" | "sending" | "sent" | "error">>({});
 
   const unread = items.filter((r) => !r.is_read).length;
   const total = unread + pendingAudits + followUps;
@@ -34,6 +35,19 @@ export function NotificationBell({
       } catch {
         /* best-effort */
       }
+    }
+  }
+
+  async function sendAudit(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setAuditState((prev) => ({ ...prev, [id]: "sending" }));
+    try {
+      const res = await fetch(`/api/replies/${id}/send-audit`, { method: "POST" });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? `Erreur ${res.status}`);
+      setAuditState((prev) => ({ ...prev, [id]: "sent" }));
+    } catch {
+      setAuditState((prev) => ({ ...prev, [id]: "error" }));
     }
   }
 
@@ -146,15 +160,39 @@ export function NotificationBell({
                         <span className="text-[10.5px] text-muted/70">
                           {new Date(r.received_at).toLocaleString("fr-FR")}
                         </span>
-                        {r.from_email && (
-                          <a
-                            href={`mailto:${r.from_email}`}
-                            className="flex items-center gap-1 rounded-full bg-orion px-2.5 py-1 text-[11px] font-medium text-white"
-                          >
-                            <Reply className="h-3 w-3" /> Répondre
-                          </a>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {r.from_email && (
+                            <a
+                              href={`mailto:${r.from_email}`}
+                              className="flex items-center gap-1 rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink"
+                            >
+                              <Reply className="h-3 w-3" /> Répondre
+                            </a>
+                          )}
+                          {r.from_email && (auditState[r.id] ?? "idle") !== "sent" && (
+                            <button
+                              onClick={(e) => sendAudit(r.id, e)}
+                              disabled={auditState[r.id] === "sending"}
+                              className="flex items-center gap-1 rounded-full bg-orion px-2.5 py-1 text-[11px] font-medium text-white disabled:opacity-50"
+                            >
+                              {auditState[r.id] === "sending" ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Send className="h-3 w-3" />
+                              )}
+                              Envoyer l'audit
+                            </button>
+                          )}
+                          {auditState[r.id] === "sent" && (
+                            <span className="flex items-center gap-1 rounded-full bg-success/12 px-2.5 py-1 text-[11px] font-medium text-success">
+                              <Check className="h-3 w-3" /> Envoyé
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {auditState[r.id] === "error" && (
+                        <p className="mt-1.5 text-[11px] font-medium text-danger">Échec de l'envoi.</p>
+                      )}
                     </div>
                   )}
                 </div>
