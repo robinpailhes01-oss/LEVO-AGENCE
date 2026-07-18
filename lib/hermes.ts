@@ -51,20 +51,19 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
   const city = typeof enrichment.city === "string" ? enrichment.city : null;
 
   // Chaque appel est indépendant (le modèle ne "voit" pas les mails déjà
-  // générés dans ce lot) — un style de pitch ET d'accroche tirés au hasard
-  // (indépendamment) évitent que tout le lot converge vers les mêmes
-  // formulations "sûres".
-  const styleSeed = Math.floor(Math.random() * 5); // 5 = longueur de CASUAL_PITCH_WEIGHTS
-  const openingSeed = Math.floor(Math.random() * 4);
+  // générés dans ce lot) — des styles de pitch/accroche tirés au hasard
+  // évitent que tout le lot converge vers les mêmes formulations "sûres".
+  const pitchSeed = Math.floor(Math.random() * 3);
+  const hookSeed = Math.floor(Math.random() * 4);
   const result = await callClaudeJson<HermesResult>({
     system: HERMES_SYSTEM,
     prompt: hermesAnalyzePrompt(
       { full_name: lead.full_name, company: lead.company, sector: lead.sector, city },
       websiteExcerpt,
-      styleSeed,
-      openingSeed,
+      pitchSeed,
+      hookSeed,
     ),
-    maxTokens: 900,
+    maxTokens: 700,
     temperature: 0.8,
   });
 
@@ -77,11 +76,9 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
       status: "draft",
       website_excerpt: websiteExcerpt,
       subject_line: result.subject_line,
-      opening_line: result.opening_line,
-      verified_observation: result.verified_observation,
-      casual_pitch: result.casual_pitch,
-      personalized_question: result.personalized_question,
-      opportunity_angle: result.opportunity_angle,
+      hook: result.hook,
+      pitch: result.pitch,
+      closing_question: result.closing_question,
       confidence_score: Math.min(Math.max(Math.round(result.confidence_score ?? 0), 0), 100),
       contact_first_name: result.contact_first_name ?? null,
       email_body: emailBody,

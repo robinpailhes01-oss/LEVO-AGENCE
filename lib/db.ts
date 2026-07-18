@@ -261,11 +261,9 @@ export interface HermesAnalysis {
   status: "draft" | "approved" | "rejected" | "sent";
   website_excerpt: string | null;
   subject_line: string | null;
-  opening_line: string | null;
-  verified_observation: string | null;
-  casual_pitch: string | null;
-  personalized_question: string | null;
-  opportunity_angle: string | null;
+  hook: string | null;
+  pitch: string | null;
+  closing_question: string | null;
   confidence_score: number | null;
   contact_first_name: string | null;
   email_body: string | null;

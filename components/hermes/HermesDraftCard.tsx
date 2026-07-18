@@ -9,12 +9,11 @@ interface DraftProps {
   subjectLine: string;
   emailBody: string;
   confidenceScore: number | null;
-  verifiedObservation: string | null;
-  opportunityAngle: string | null;
+  hook: string | null;
 }
 
 /** Carte de validation humaine d'un brouillon Hermes : édition libre + approuver/refuser. */
-export function HermesDraftCard({ id, subjectLine, emailBody, confidenceScore, verifiedObservation, opportunityAngle }: DraftProps) {
+export function HermesDraftCard({ id, subjectLine, emailBody, confidenceScore, hook }: DraftProps) {
   const router = useRouter();
   const [subject, setSubject] = useState(subjectLine);
   const [body, setBody] = useState(emailBody);
@@ -57,10 +56,9 @@ export function HermesDraftCard({ id, subjectLine, emailBody, confidenceScore, v
 
   return (
     <div className="space-y-3">
-      {(opportunityAngle || verifiedObservation) && (
+      {hook && (
         <div className="rounded-xl bg-background px-3 py-2.5 text-[12px] text-muted">
-          {opportunityAngle && <p><span className="font-medium text-ink">Angle :</span> {opportunityAngle}</p>}
-          {verifiedObservation && <p className="mt-1"><span className="font-medium text-ink">Observation :</span> {verifiedObservation}</p>}
+          <p><span className="font-medium text-ink">Accroche :</span> {hook}</p>
           <p className={`mt-1 font-medium ${confidenceTone}`}>Confiance : {confidenceScore ?? 0}%</p>
         </div>
       )}

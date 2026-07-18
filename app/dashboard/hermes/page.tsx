@@ -106,8 +106,7 @@ export default async function HermesPage() {
                   subjectLine={item.subject_line ?? ""}
                   emailBody={item.email_body ?? ""}
                   confidenceScore={item.confidence_score}
-                  verifiedObservation={item.verified_observation}
-                  opportunityAngle={item.opportunity_angle}
+                  hook={item.hook}
                 />
               </div>
             ))}
