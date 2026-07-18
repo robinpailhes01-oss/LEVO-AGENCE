@@ -213,8 +213,20 @@ export function getFollowUpCount(): Promise<number> {
   }, 0);
 }
 
+export interface HermesLeadCard {
+  id: string;
+  full_name: string | null;
+  company: string | null;
+  email: string | null;
+  sector: string | null;
+  instagram_handle: string | null;
+  website: string | null;
+  phone: string | null;
+  city: string | null;
+}
+
 export interface HermesQueueItem extends HermesAnalysis {
-  lead: Pick<Lead, "id" | "full_name" | "company" | "email" | "sector" | "instagram_handle"> | null;
+  lead: HermesLeadCard | null;
 }
 
 /** File des brouillons Hermes en attente de validation humaine. */
@@ -231,13 +243,26 @@ export function getHermesQueue(status: "draft" | "approved" | "rejected" | "sent
     if (analyses.length === 0) return [];
 
     const leadIds = [...new Set(analyses.map((a) => a.lead_id))];
-    const { data: leadsData } = await db
-      .from("leads")
-      .select("id, full_name, company, email, sector, instagram_handle")
-      .in("id", leadIds);
-    const byId = new Map((leadsData ?? []).map((l) => [(l as { id: string }).id, l]));
+    const { data: leadsData } = await db.from("leads").select("*").in("id", leadIds);
+    const byId = new Map(
+      ((leadsData ?? []) as Lead[]).map((l) => {
+        const enrichment = (l.enrichment_data ?? {}) as Record<string, unknown>;
+        const card: HermesLeadCard = {
+          id: l.id,
+          full_name: l.full_name,
+          company: l.company,
+          email: l.email,
+          sector: l.sector,
+          instagram_handle: l.instagram_handle,
+          website: l.linkedin_url, // héritage scraping : contient l'URL du site, pas un profil LinkedIn
+          phone: typeof enrichment.phone === "string" ? enrichment.phone : null,
+          city: typeof enrichment.city === "string" ? enrichment.city : null,
+        };
+        return [l.id, card];
+      }),
+    );
 
-    return analyses.map((a) => ({ ...a, lead: (byId.get(a.lead_id) as HermesQueueItem["lead"]) ?? null }));
+    return analyses.map((a) => ({ ...a, lead: byId.get(a.lead_id) ?? null }));
   }, []);
 }
 

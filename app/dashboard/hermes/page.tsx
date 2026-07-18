@@ -1,4 +1,4 @@
-import { Sparkles, Inbox, Download } from "lucide-react";
+import { Sparkles, Inbox, Download, Phone, Globe, MapPin } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { HermesAnalyzeButton } from "@/components/hermes/HermesAnalyzeButton";
 import { HermesDraftCard } from "@/components/hermes/HermesDraftCard";
@@ -75,11 +75,26 @@ export default async function HermesPage() {
           <div className="space-y-4">
             {queue.map((item) => (
               <div key={item.id} className="levo-card p-5">
-                <div className="mb-3">
-                  <p className="text-[13.5px] font-medium text-ink">
+                <div className="mb-3 rounded-xl bg-background px-3 py-3">
+                  <p className="text-[14px] font-semibold text-ink">
                     {item.lead?.company ?? item.lead?.full_name ?? "Prospect"}
                   </p>
                   <p className="text-[12px] text-muted">{item.lead?.sector ?? "—"} · {item.lead?.email ?? "—"}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink/80">
+                    {item.lead?.phone && (
+                      <a href={`tel:${item.lead.phone.replace(/\s+/g, "")}`} className="flex items-center gap-1 hover:text-[#BA7517]">
+                        <Phone className="h-3 w-3" /> {item.lead.phone}
+                      </a>
+                    )}
+                    {item.lead?.website && (
+                      <a href={item.lead.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-[#BA7517]">
+                        <Globe className="h-3 w-3" /> {item.lead.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                      </a>
+                    )}
+                    {item.lead?.city && (
+                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {item.lead.city}</span>
+                    )}
+                  </div>
                 </div>
                 <HermesDraftCard
                   id={item.id}
