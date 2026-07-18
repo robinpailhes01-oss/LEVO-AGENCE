@@ -54,7 +54,7 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
   // générés dans ce lot) — un style de pitch ET d'accroche tirés au hasard
   // (indépendamment) évitent que tout le lot converge vers les mêmes
   // formulations "sûres".
-  const styleSeed = Math.floor(Math.random() * 3);
+  const styleSeed = Math.floor(Math.random() * 5); // 5 = longueur de CASUAL_PITCH_WEIGHTS
   const openingSeed = Math.floor(Math.random() * 4);
   const result = await callClaudeJson<HermesResult>({
     system: HERMES_SYSTEM,

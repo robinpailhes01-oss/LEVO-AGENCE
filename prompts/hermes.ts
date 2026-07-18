@@ -114,6 +114,13 @@ const CASUAL_PITCH_STYLES = [
   "Évoque en une phrase l'anecdote Harmonie Yacht (l'ancienne boîte de bateaux de Robin à Carnon, ~90% automatisée) — vécue, concrète, jamais la même formulation deux fois. Exemple validé par Robin (à reformuler, ne jamais copier tel quel) : \"J'avais une boîte de location de bateaux à Carnon, et à un moment les demandes de dispo par WhatsApp et Instagram prenaient un temps fou — j'ai automatisé ça, et ça a changé pas mal de choses au quotidien.\"",
   "Donne UN exemple concret et court de ce qui pourrait être automatisé, DIRECTEMENT lié à l'observation que tu viens de faire pour CE lead précis (pas générique, pas de mot \"bricoler\"/\"trucs\") — reste professionnel même en étant décontracté, comme une suggestion concrète glissée en passant, pas une liste de features.",
 ];
+/**
+ * Pondération : l'anecdote Harmonie Yacht (index 1) est une histoire
+ * identifiable — si elle revient mot pour mot à trop de prospects différents,
+ * ça devient lui-même un signe d'automatisation. On la tire deux fois moins
+ * souvent que les deux autres styles.
+ */
+const CASUAL_PITCH_WEIGHTS = [0, 0, 1, 2, 2];
 
 /**
  * Même problème que pour casual_pitch, mais sur l'accroche : livré à
@@ -138,8 +145,9 @@ export function hermesAnalyzePrompt(lead: {
     ? `Extrait du site web (texte visible, tronqué) :\n"""\n${websiteExcerpt}\n"""`
     : "Le site web n'a pas pu être analysé (absent, hors ligne, ou contenu insuffisant). Base-toi uniquement sur le secteur/la catégorie/la ville ci-dessous.";
 
-  const pitchStyle = CASUAL_PITCH_STYLES[styleSeed % CASUAL_PITCH_STYLES.length];
-  const openingStyle = OPENING_STYLES[openingSeed % OPENING_STYLES.length];
+  const pitchIndex = CASUAL_PITCH_WEIGHTS[styleSeed % CASUAL_PITCH_WEIGHTS.length] ?? 0;
+  const pitchStyle = CASUAL_PITCH_STYLES[pitchIndex] ?? CASUAL_PITCH_STYLES[0];
+  const openingStyle = OPENING_STYLES[openingSeed % OPENING_STYLES.length] ?? OPENING_STYLES[0];
 
   return `Lead à analyser :
 - Entreprise : ${lead.company ?? lead.full_name ?? "—"}
