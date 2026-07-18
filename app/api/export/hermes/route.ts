@@ -86,6 +86,15 @@ export async function GET(req: Request): Promise<Response> {
     );
   }
 
+  // Marque les brouillons exportés comme envoyés — ancre `sent_at` pour pouvoir
+  // relier les opens/réponses (email_events, déjà alimenté par le webhook Instantly)
+  // à l'analyse Hermes précise dont ils proviennent.
+  const now = new Date().toISOString();
+  await db.from("hermes_analyses").update({ status: "sent", sent_at: now }).in(
+    "id",
+    analyses.map((a) => a.id),
+  );
+
   return new Response(lines.join("\n"), {
     status: 200,
     headers: {
