@@ -2,6 +2,7 @@ import { Sparkles, Inbox, Download, Phone, Globe, MapPin, User } from "lucide-re
 import { PageHeader } from "@/components/layout/PageHeader";
 import { HermesAnalyzeButton } from "@/components/hermes/HermesAnalyzeButton";
 import { HermesDraftCard } from "@/components/hermes/HermesDraftCard";
+import { HermesApproveAll } from "@/components/hermes/HermesApproveAll";
 import { getHermesQueue, getHermesCandidates } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -66,6 +67,11 @@ export default async function HermesPage() {
           <h2 className="font-display text-[16px] font-semibold text-ink">
             À valider {queue.length > 0 && <span className="text-muted">({queue.length})</span>}
           </h2>
+          {queue.length > 1 && (
+            <div className="ml-auto">
+              <HermesApproveAll count={queue.length} />
+            </div>
+          )}
         </div>
         {queue.length === 0 ? (
           <div className="levo-card p-8 text-center text-sm text-muted">

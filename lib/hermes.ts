@@ -87,6 +87,18 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
   return inserted as HermesAnalysis;
 }
 
+/** Approuve d'un coup tous les brouillons en attente (pour traiter un gros lot après relecture). */
+export async function approveAllDrafts(): Promise<number> {
+  const db = supabaseAdmin();
+  const { data, error } = await db
+    .from("hermes_analyses")
+    .update({ status: "approved", reviewed_at: new Date().toISOString() })
+    .eq("status", "draft")
+    .select("id");
+  if (error) throw new Error(error.message);
+  return (data ?? []).length;
+}
+
 /** Valide/rejette/édite un brouillon Hermes — action humaine obligatoire avant tout envoi. */
 export async function reviewHermesAnalysis(
   id: string,
