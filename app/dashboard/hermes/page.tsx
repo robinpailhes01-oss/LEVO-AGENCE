@@ -1,93 +1,98 @@
-import { FileBarChart, Euro, Users, FileCheck2, Heart } from "lucide-react";
-import { PageHeader, ActionButton } from "@/components/layout/PageHeader";
-import { Donut } from "@/components/charts/Donut";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { getReports, getOverview } from "@/lib/queries";
-import { formatCurrency } from "@/lib/utils";
+import { Sparkles, Inbox, Download } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { HermesAnalyzeButton } from "@/components/hermes/HermesAnalyzeButton";
+import { HermesDraftCard } from "@/components/hermes/HermesDraftCard";
+import { getHermesQueue, getHermesCandidates } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function HermesPage() {
-  const [reports, ov] = await Promise.all([getReports(), getOverview()]);
-  const latest = reports[0];
-
-  const kpis = [
-    { label: "MRR", value: formatCurrency(ov.mrr), icon: Euro, accent: "#1A3BFF" },
-    { label: "Leads actifs", value: String(ov.activeLeads), icon: Users, accent: "#1D9E75" },
-    { label: "Posts publiés", value: String(ov.publishedPosts), icon: FileCheck2, accent: "#BA7517" },
-    { label: "Engagement", value: `${ov.avgEngagement}%`, icon: Heart, accent: "#7B2FBE" },
-  ];
+  const [queue, candidates, approved] = await Promise.all([
+    getHermesQueue("draft"),
+    getHermesCandidates(20),
+    getHermesQueue("approved"),
+  ]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="HERMES — Analytics"
-        subtitle="Chiffres en temps réel + rapports hebdomadaires."
+        title="HERMES — Agent commercial IA"
+        subtitle="Analyse les leads, rédige des emails personnalisés, propose — tu valides avant tout envoi."
         action={
-          <ActionButton color="#BA7517">
-            <FileBarChart className="h-4 w-4" />
-            Générer rapport
-          </ActionButton>
+          approved.length > 0 ? (
+            <a
+              href="/api/export/hermes"
+              className="levo-pressable inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110"
+              style={{ backgroundColor: "#BA7517", boxShadow: "0 10px 24px -10px #BA751799" }}
+            >
+              <Download className="h-4 w-4" />
+              Exporter {approved.length} approuvé{approved.length > 1 ? "s" : ""} (CSV Instantly)
+            </a>
+          ) : undefined
         }
       />
 
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {kpis.map((k) => (
-          <div key={k.label} className="levo-card p-5">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-xl"
-              style={{ backgroundColor: `${k.accent}14`, color: k.accent }}
-            >
-              <k.icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
-            </span>
-            <p className="mt-4 font-display text-[28px] font-semibold leading-none tracking-tightest text-ink">
-              {k.value}
-            </p>
-            <p className="mt-1.5 text-xs text-muted">{k.label}</p>
-          </div>
-        ))}
+      <section className="levo-card p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#BA751714] text-[#BA7517]">
+            <Sparkles className="h-4 w-4" strokeWidth={1.9} />
+          </span>
+          <h2 className="font-display text-[16px] font-semibold text-ink">Nouveaux leads à analyser</h2>
+        </div>
+        {candidates.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted">
+            Aucun nouveau lead en attente d'analyse pour l'instant.
+          </p>
+        ) : (
+          <ul className="divide-y divide-line/60">
+            {candidates.map((lead) => (
+              <li key={lead.id} className="flex items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[13.5px] font-medium text-ink">{lead.company ?? lead.full_name ?? "Sans nom"}</p>
+                  <p className="truncate text-[12px] text-muted">{lead.sector ?? "—"} · {lead.email ?? "—"}</p>
+                </div>
+                <HermesAnalyzeButton leadId={lead.id} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Dernier rapport</CardTitle>
-            {latest && <Badge tone="amber">HERMES</Badge>}
-          </CardHeader>
-          <CardContent>
-            {latest ? (
-              <div>
-                <p className="mb-2 text-xs text-muted">
-                  Semaine du {latest.week_start} au {latest.week_end}
-                </p>
-                <div className="whitespace-pre-wrap text-sm leading-relaxed text-ink/80">
-                  {latest.report_content ?? "Rapport vide."}
+      <section>
+        <div className="mb-4 flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#BA751714] text-[#BA7517]">
+            <Inbox className="h-4 w-4" strokeWidth={1.9} />
+          </span>
+          <h2 className="font-display text-[16px] font-semibold text-ink">
+            À valider {queue.length > 0 && <span className="text-muted">({queue.length})</span>}
+          </h2>
+        </div>
+        {queue.length === 0 ? (
+          <div className="levo-card p-8 text-center text-sm text-muted">
+            Aucun brouillon en attente. Lance une analyse ci-dessus pour en générer un.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {queue.map((item) => (
+              <div key={item.id} className="levo-card p-5">
+                <div className="mb-3">
+                  <p className="text-[13.5px] font-medium text-ink">
+                    {item.lead?.company ?? item.lead?.full_name ?? "Prospect"}
+                  </p>
+                  <p className="text-[12px] text-muted">{item.lead?.sector ?? "—"} · {item.lead?.email ?? "—"}</p>
                 </div>
+                <HermesDraftCard
+                  id={item.id}
+                  subjectLine={item.subject_line ?? ""}
+                  emailBody={item.email_body ?? ""}
+                  confidenceScore={item.confidence_score}
+                  verifiedObservation={item.verified_observation}
+                  opportunityAngle={item.opportunity_angle}
+                />
               </div>
-            ) : (
-              <p className="py-8 text-center text-sm text-muted">
-                Aucun rapport pour l'instant. « Générer rapport » (branché à l'étape
-                HERMES) produira ta première synthèse hebdo.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sources de leads</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {ov.leadsBySource.length > 0 ? (
-              <Donut segments={ov.leadsBySource} centerLabel="leads" />
-            ) : (
-              <p className="py-8 text-center text-sm text-muted">
-                Pas encore de leads à répartir.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

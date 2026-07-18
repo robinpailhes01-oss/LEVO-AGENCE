@@ -7,6 +7,7 @@ import type {
   Audit,
   Client,
   ContentItem,
+  HermesAnalysis,
   Lead,
   Niche,
   WeeklyReport,
@@ -210,6 +211,70 @@ export function getFollowUpCount(): Promise<number> {
     if (error) throw error;
     return count ?? 0;
   }, 0);
+}
+
+export interface HermesQueueItem extends HermesAnalysis {
+  lead: Pick<Lead, "id" | "full_name" | "company" | "email" | "sector" | "instagram_handle"> | null;
+}
+
+/** File des brouillons Hermes en attente de validation humaine. */
+export function getHermesQueue(status: "draft" | "approved" | "rejected" | "sent" = "draft"): Promise<HermesQueueItem[]> {
+  return safe(async () => {
+    const db = supabaseAdmin();
+    const { data, error } = await db
+      .from("hermes_analyses")
+      .select("*")
+      .eq("status", status)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const analyses = (data ?? []) as HermesAnalysis[];
+    if (analyses.length === 0) return [];
+
+    const leadIds = [...new Set(analyses.map((a) => a.lead_id))];
+    const { data: leadsData } = await db
+      .from("leads")
+      .select("id, full_name, company, email, sector, instagram_handle")
+      .in("id", leadIds);
+    const byId = new Map((leadsData ?? []).map((l) => [(l as { id: string }).id, l]));
+
+    return analyses.map((a) => ({ ...a, lead: (byId.get(a.lead_id) as HermesQueueItem["lead"]) ?? null }));
+  }, []);
+}
+
+/** Nombre de brouillons Hermes en attente de validation — pour la cloche/notifs. */
+export function getHermesPendingCount(): Promise<number> {
+  return safe(async () => {
+    const { count, error } = await supabaseAdmin()
+      .from("hermes_analyses")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "draft");
+    if (error) throw error;
+    return count ?? 0;
+  }, 0);
+}
+
+/** Leads nouveaux pas encore analysés par Hermes — candidats pour lancer une analyse. */
+export function getHermesCandidates(limit = 20): Promise<Lead[]> {
+  return safe(async () => {
+    const db = supabaseAdmin();
+    const { data: leadsData, error } = await db
+      .from("leads")
+      .select("*")
+      .eq("stage", "new")
+      .order("created_at", { ascending: false })
+      .limit(limit * 3); // marge pour compenser les leads déjà analysés qu'on filtre ensuite
+    if (error) throw error;
+    const candidates = (leadsData ?? []) as Lead[];
+    if (candidates.length === 0) return [];
+
+    const { data: analyzed } = await db
+      .from("hermes_analyses")
+      .select("lead_id")
+      .in("lead_id", candidates.map((l) => l.id));
+    const analyzedIds = new Set((analyzed ?? []).map((a) => (a as { lead_id: string }).lead_id));
+
+    return candidates.filter((l) => !analyzedIds.has(l.id)).slice(0, limit);
+  }, []);
 }
 
 export function getNiches(): Promise<Niche[]> {

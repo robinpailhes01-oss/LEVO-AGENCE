@@ -253,6 +253,25 @@ export interface Setting {
   updated_at: string;
 }
 
+/** HERMES — brouillon d'analyse + email personnalisé, en attente de validation humaine. */
+export interface HermesAnalysis {
+  id: string;
+  created_at: string;
+  lead_id: string;
+  status: "draft" | "approved" | "rejected" | "sent";
+  website_excerpt: string | null;
+  subject_line: string | null;
+  opening_line: string | null;
+  verified_observation: string | null;
+  personalized_question: string | null;
+  opportunity_angle: string | null;
+  confidence_score: number | null;
+  email_body: string | null;
+  edited: boolean;
+  reviewed_at: string | null;
+  sent_at: string | null;
+}
+
 export interface WatchedAccount {
   id: string;
   platform: "instagram" | "linkedin" | null;
