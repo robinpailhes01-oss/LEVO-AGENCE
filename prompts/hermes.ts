@@ -46,6 +46,12 @@ Concrètement :
   systématique [accroche] / [observation] / [pitch] / [question] qui se
   répète identique à chaque email — varie l'ordre et la structure d'un lead à
   l'autre, comme le ferait vraiment quelqu'un.
+- "opening_line" doit être une phrase COMPLÈTE et autonome, qui se suffit à
+  elle-même (jamais une proposition en suspens qui ne se termine que dans
+  "verified_observation" — les deux champs sont affichés sur des paragraphes
+  séparés, donc une phrase coupée entre les deux est illisible). Mauvais :
+  "j'ai vu que pour les devis," (incomplet). Bon : "J'ai regardé votre site
+  avant de vous écrire." (complet, autonome).
 
 Éventail d'angles possibles (choisis celui le MIEUX étayé par ce que tu vois
 réellement — ne retombe pas systématiquement sur "pas de devis en ligne" si
@@ -93,15 +99,30 @@ export interface HermesResult {
   contact_first_name: string | null;
 }
 
+/**
+ * Chaque appel à Claude est indépendant (pas de mémoire des mails déjà
+ * générés) — livré à lui-même, le modèle reconverge presque toujours vers la
+ * même formulation "sûre" pour casual_pitch sur tout un lot. On force la
+ * variété en imposant un style différent à chaque génération.
+ */
+const CASUAL_PITCH_STYLES = [
+  "Ne mentionne PAS du tout ce que fait Luma dans cet email — laisse \"casual_pitch\" en chaîne vide (\"\"). L'observation et la question suffisent, comme le ferait quelqu'un qui n'a pas besoin de se présenter avant de poser une question.",
+  "Une phrase très courte (5-8 mots), presque en passant, sans expliquer Luma en détail — genre \"je bricole ce genre de trucs avec l'IA\".",
+  "Évoque en une phrase l'anecdote Harmonie Yacht (l'ancienne boîte de bateaux de Robin, ~90% automatisée) — vécue, pas vendue.",
+  "Une phrase qui part directement de LEUR métier à eux plutôt que de Luma — genre \"pour un [secteur], ce genre de truc peut se régler tout seul\".",
+];
+
 export function hermesAnalyzePrompt(lead: {
   full_name: string | null;
   company: string | null;
   sector: string | null;
   city: string | null;
-}, websiteExcerpt: string | null): string {
+}, websiteExcerpt: string | null, styleSeed: number): string {
   const siteBlock = websiteExcerpt
     ? `Extrait du site web (texte visible, tronqué) :\n"""\n${websiteExcerpt}\n"""`
     : "Le site web n'a pas pu être analysé (absent, hors ligne, ou contenu insuffisant). Base-toi uniquement sur le secteur/la catégorie/la ville ci-dessous.";
+
+  const pitchStyle = CASUAL_PITCH_STYLES[styleSeed % CASUAL_PITCH_STYLES.length];
 
   return `Lead à analyser :
 - Entreprise : ${lead.company ?? lead.full_name ?? "—"}
@@ -120,11 +141,8 @@ règles anti-IA du system prompt) :
   déduite du contexte fourni.
 - "opening_line" : une entrée en matière très courte (≈8 mots), pas une
   observation en soi, pas de formule de "hook" travaillée.
-- "casual_pitch" : UNE phrase courte et décontractée sur ce que fait Luma
-  (automatisation IA pour PME), formulée différemment à chaque fois — jamais
-  la même phrase deux fois, jamais un ton marketing. Tu peux évoquer
-  Harmonie Yacht (l'ancienne boîte de Robin, ~90% automatisée) une fois de
-  temps en temps si ça sonne naturel, sans le faire systématiquement.
+- "casual_pitch" : pour CETTE génération, applique CE style précis (imposé,
+  ne choisis pas toi-même) : ${pitchStyle}
 - "personalized_question" : la question de fin de mail, courte, curieuse,
   posée comme on la poserait vraiment à l'oral — pas une question d'étude de
   marché.
@@ -147,15 +165,13 @@ Renvoie UNIQUEMENT ce JSON : { "subject_line": string, "opening_line": string, "
  * ne jamais produire une salutation bancale.
  */
 export function assembleHermesEmail(result: HermesResult, senderFirstName = "Robin"): string {
-  return `{{greeting}}
-
-${result.opening_line}
-
-${result.verified_observation}
-
-${result.casual_pitch}
-
-${result.personalized_question}
-
-${senderFirstName}`;
+  const blocks = [
+    "{{greeting}}",
+    result.opening_line,
+    result.verified_observation,
+    result.casual_pitch?.trim() || null, // omis si vide (style "no_pitch")
+    result.personalized_question,
+    senderFirstName,
+  ].filter((b): b is string => !!b && b.length > 0);
+  return blocks.join("\n\n");
 }

@@ -50,14 +50,19 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
   const enrichment = (lead.enrichment_data ?? {}) as Record<string, unknown>;
   const city = typeof enrichment.city === "string" ? enrichment.city : null;
 
+  // Chaque appel est indépendant (le modèle ne "voit" pas les mails déjà
+  // générés dans ce lot) — un style de pitch tiré au hasard évite que tout
+  // le lot converge vers la même formulation "sûre".
+  const styleSeed = Math.floor(Math.random() * 4);
   const result = await callClaudeJson<HermesResult>({
     system: HERMES_SYSTEM,
     prompt: hermesAnalyzePrompt(
       { full_name: lead.full_name, company: lead.company, sector: lead.sector, city },
       websiteExcerpt,
+      styleSeed,
     ),
     maxTokens: 900,
-    temperature: 0.7,
+    temperature: 0.8,
   });
 
   const emailBody = assembleHermesEmail(result);
