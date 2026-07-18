@@ -4,27 +4,25 @@ import type { HermesAnalysis, Lead } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-/** Colonnes = variables Instantly attendues par le gabarit Hermes (cf. spec Robin). */
+/**
+ * Colonnes Instantly. Le mail entier part dans une seule variable
+ * `email_body` (WYSIWYG : exactement ce que Robin a validé/édité dans le
+ * dashboard) → côté Instantly, il suffit de mettre {{email_body}} en corps
+ * et {{subject_line}} en objet. Les autres colonnes servent aux champs
+ * standards / au suivi.
+ */
 const HEADERS = [
-  "greeting",
+  "email",
   "first_name",
   "company_name",
-  "email",
   "subject_line",
-  "hook",
-  "pitch",
-  "closing_question",
+  "email_body",
   "instagram_url",
   "sector",
   "city",
   "confidence_score",
   "lead_id",
 ];
-
-/** "Bonjour Julie," si un prénom est connu, sinon "Bonjour," (jamais de virgule/espace bancale). */
-function greetingFor(firstName: string | null): string {
-  return firstName ? `Bonjour ${firstName},` : "Bonjour,";
-}
 
 function csvCell(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
@@ -68,19 +66,17 @@ export async function GET(req: Request): Promise<Response> {
   for (const a of analyses) {
     const lead = byId.get(a.lead_id);
     if (!lead?.email) continue;
+    if (!a.email_body) continue;
     const enrichment = (lead.enrichment_data ?? {}) as Record<string, unknown>;
     const city = typeof enrichment.city === "string" ? enrichment.city : "";
-    const firstName = a.contact_first_name || lead.first_name || null; // priorité au prénom trouvé par Hermes sur le site
+    const firstName = a.contact_first_name || lead.first_name || "";
     lines.push(
       [
-        greetingFor(firstName),
-        firstName ?? "",
-        lead.company ?? "",
         lead.email,
+        firstName,
+        lead.company ?? "",
         a.subject_line ?? "",
-        a.hook ?? "",
-        a.pitch ?? "",
-        a.closing_question ?? "",
+        a.email_body, // corps complet et définitif (salutation déjà résolue)
         instagramUrl(lead.instagram_handle),
         lead.sector ?? "",
         city,

@@ -262,8 +262,6 @@ export interface HermesAnalysis {
   website_excerpt: string | null;
   subject_line: string | null;
   hook: string | null;
-  pitch: string | null;
-  closing_question: string | null;
   confidence_score: number | null;
   contact_first_name: string | null;
   email_body: string | null;

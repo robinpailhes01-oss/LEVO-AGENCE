@@ -51,23 +51,23 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
   const city = typeof enrichment.city === "string" ? enrichment.city : null;
 
   // Chaque appel est indépendant (le modèle ne "voit" pas les mails déjà
-  // générés dans ce lot) — des styles de pitch/accroche tirés au hasard
-  // évitent que tout le lot converge vers les mêmes formulations "sûres".
-  const pitchSeed = Math.floor(Math.random() * 3);
+  // générés dans ce lot) — un style d'accroche tiré au hasard évite que tout
+  // le lot converge vers la même formulation "sûre".
   const hookSeed = Math.floor(Math.random() * 4);
   const result = await callClaudeJson<HermesResult>({
     system: HERMES_SYSTEM,
     prompt: hermesAnalyzePrompt(
       { full_name: lead.full_name, company: lead.company, sector: lead.sector, city },
       websiteExcerpt,
-      pitchSeed,
       hookSeed,
     ),
-    maxTokens: 700,
+    maxTokens: 500,
     temperature: 0.8,
   });
 
-  const emailBody = assembleHermesEmail(result);
+  // Prénom : celui trouvé par Hermes sur le site en priorité, sinon lead.first_name.
+  const firstName = result.contact_first_name ?? lead.first_name ?? null;
+  const emailBody = assembleHermesEmail(result, firstName);
 
   const { data: inserted, error } = await db
     .from("hermes_analyses")
@@ -77,8 +77,6 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
       website_excerpt: websiteExcerpt,
       subject_line: result.subject_line,
       hook: result.hook,
-      pitch: result.pitch,
-      closing_question: result.closing_question,
       confidence_score: Math.min(Math.max(Math.round(result.confidence_score ?? 0), 0), 100),
       contact_first_name: result.contact_first_name ?? null,
       email_body: emailBody,
