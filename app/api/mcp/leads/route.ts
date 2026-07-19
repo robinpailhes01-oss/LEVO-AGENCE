@@ -1,4 +1,4 @@
-import { mcpRoute, str, num, arr, obj, requireStr } from "@/lib/mcp";
+import { mcpRoute, str, num, bool, arr, obj, requireStr } from "@/lib/mcp";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { callClaudeJson } from "@/lib/claude";
 import { serverEnv } from "@/lib/env";
@@ -19,14 +19,17 @@ const STATUSES: LeadStatus[] = ["new", "contacted", "responded", "qualified", "p
 const { GET, POST } = mcpRoute("leads", [
   {
     name: "get_leads",
-    description: "Liste les leads, filtrable par statut/stage et score minimum.",
-    input: { status: "string?", stage: "string?", score_min: "number?", limit: "number?" },
+    description: "Liste les leads, filtrable par statut/stage/niche et score minimum.",
+    input: { status: "string?", stage: "string?", niche_id: "string?", only_unexported: "boolean?", score_min: "number?", limit: "number?" },
     run: async (input) => {
       let q = supabaseAdmin().from("leads").select("*");
       const status = str(input, "status");
       if (status) q = q.eq("status", status);
       const stage = str(input, "stage");
       if (stage) q = q.eq("stage", stage);
+      const nicheId = str(input, "niche_id");
+      if (nicheId) q = q.eq("niche_id", nicheId);
+      if (bool(input, "only_unexported")) q = q.is("exported_at", null);
       const scoreMin = num(input, "score_min");
       if (scoreMin !== undefined) q = q.gte("score", scoreMin);
       const { data, error } = await q.order("score", { ascending: false }).limit(num(input, "limit") ?? 100);
