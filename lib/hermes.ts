@@ -57,7 +57,13 @@ export async function fetchWebsiteText(url: string | null): Promise<string | nul
     const html = await res.text();
     const text = htmlToText(html);
     if (text.length < 40) return null;
-    return text.slice(0, 6000);
+    // Certains sites contiennent des surrogates Unicode orphelins qui cassent
+    // la sérialisation JSON de l'appel Claude (erreur "no low surrogate"). On
+    // les retire pour rendre l'analyse robuste quel que soit l'encodage du site.
+    const clean = text
+      .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "")
+      .replace(/(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "$1");
+    return clean.slice(0, 6000);
   } catch {
     return null;
   }
