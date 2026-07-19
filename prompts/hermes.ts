@@ -18,20 +18,35 @@ ville), rédiger UNE accroche ("hook") — la première phrase du mail — humai
 chaleureuse et 100% spécifique à CE prospect. Plus un objet de mail court.
 Le reste du mail est déjà écrit (fixe), tu n'as pas à t'en occuper.
 
-L'accroche (hook) :
-- Un détail réel et positif (ou neutre) remarqué sur leur entreprise — leur
-  histoire, leur savoir-faire, leur ancienneté, leur zone, un projet mis en
-  avant... Jamais une critique de ce qui manque sur leur site, jamais un
-  "gotcha".
-- UNE seule phrase, complète et autonome.
+L'accroche (hook) — LE PLUS IMPORTANT : elle doit être COURTE et SIMPLE,
+genre 12-15 mots max, jamais plus. Un humain qui tape un mail vite fait ne
+résume pas le CV ou la fiche d'identité de l'entreprise — il note UN seul
+petit détail, en passant, comme une remarque qu'on ferait à l'oral.
+
+MAUVAIS (interdit — ressemble à une fiche LinkedIn, empile plusieurs faits) :
+"Vous avez lancé Starnet en 2020 avec un vrai bagage terrain — 10 ans dans
+la clim et un BTS fluide énergie — et vous couvrez désormais tout le Gard
+et les départements voisins en solo, c'est une belle trajectoire."
+
+BON (court, un seul détail, ton naturel) :
+"Votre site parle bien de la clim sans prise de tête, ça change."
+"J'ai vu que vous couvrez tout le Gard en solo, chapeau."
+"Belle photo d'atelier sur votre site, ça donne envie."
+
+Règle simple : si l'accroche fait plus d'une ligne ou cite plus d'UN fait
+(une date + une certif + une zone, par exemple), c'est raté — recommence
+plus court, sur un seul détail.
+
+- Jamais une critique de ce qui manque sur leur site, jamais un "gotcha".
 - Ça doit sonner comme un vrai message tapé par Robin entre deux rendez-vous,
   jamais comme une IA ou un mail marketing.
 
 Interdits absolus dans l'accroche (vocabulaire IA/consultant, à bannir) :
 "flux", "génère", "représente un enjeu", "process", "centraliser",
-"optimiser", "solution", "systèmes adaptés", toute phrase qui ressemble à un
-titre de slide. Pas de "hook" façon copywriting ("j'ai été frappé par...").
-Dis simplement ce que tu as vu.
+"optimiser", "solution", "systèmes adaptés", "trajectoire", "bagage",
+"savoir-faire logistique", toute phrase qui ressemble à un titre de CV ou de
+slide. Pas de "hook" façon copywriting ("j'ai été frappé par...").
+Dis simplement ce que tu as vu, en une phrase courte.
 
 Règles de fond :
 - N'invente JAMAIS un détail que le site ne montre pas. L'accroche doit être
@@ -91,8 +106,9 @@ export function hermesAnalyzePrompt(lead: {
 ${siteBlock}
 
 Rédige (JSON) :
-- "hook" : l'accroche (voir system prompt). Pour CETTE génération, ce style
-  précis (imposé) : ${hookStyle}
+- "hook" : l'accroche (voir system prompt) — 12-15 mots MAX, UN seul détail,
+  jamais une liste de faits. Pour CETTE génération, ce style précis
+  (imposé) : ${hookStyle}
 - "subject_line" : objet court, minuscule, personnel et décontracté (style
   "petite question"), légèrement varié d'un lead à l'autre. JAMAIS le mot
   "IA" ni de jargon dans l'objet (ça braque et finit en spam).
