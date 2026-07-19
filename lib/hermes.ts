@@ -1,8 +1,32 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { callClaudeJson } from "@/lib/claude";
+import { callClaude, callClaudeJson } from "@/lib/claude";
 import { HERMES_SYSTEM, hermesAnalyzePrompt, assembleHermesEmail, type HermesResult } from "@/prompts/hermes";
 import type { Lead, HermesAnalysis } from "@/lib/db";
+
+const HOOK_WORD_LIMIT = 16;
+
+/**
+ * Garde-fou : le prompt seul ne suffit pas toujours à tenir la limite de mots
+ * (déjà observé sur ce projet — les LLM ne respectent pas une contrainte de
+ * longueur à 100% du temps). Si l'accroche dépasse la limite, une seconde
+ * passe la resserre plutôt que d'envoyer un mail trop long.
+ */
+async function shortenHookIfNeeded(hook: string): Promise<string> {
+  if (hook.split(/\s+/).filter(Boolean).length <= HOOK_WORD_LIMIT) return hook;
+  try {
+    const shortened = await callClaude({
+      system: "Tu raccourcis des phrases sans changer le sens ni inventer de détail.",
+      prompt: `Cette phrase fait trop de mots pour un email court : "${hook}"\n\nRéécris-la en 10 mots maximum, une seule idée, en gardant UNIQUEMENT le détail le plus marquant. Réponds uniquement avec la phrase raccourcie, rien d'autre.`,
+      maxTokens: 60,
+      temperature: 0.5,
+    });
+    const cleaned = shortened.trim().replace(/^["']|["']$/g, "");
+    return cleaned || hook;
+  } catch {
+    return hook; // best-effort : mieux vaut un peu long qu'une erreur
+  }
+}
 
 /**
  * Récupère le texte visible d'un site web (best-effort, sans lib de parsing
@@ -65,9 +89,11 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
     temperature: 0.8,
   });
 
+  const hook = await shortenHookIfNeeded(result.hook);
+
   // Prénom : celui trouvé par Hermes sur le site en priorité, sinon lead.first_name.
   const firstName = result.contact_first_name ?? lead.first_name ?? null;
-  const emailBody = assembleHermesEmail(result, firstName);
+  const emailBody = assembleHermesEmail({ ...result, hook }, firstName);
 
   const { data: inserted, error } = await db
     .from("hermes_analyses")
@@ -76,7 +102,7 @@ export async function runHermesAnalysis(leadId: string): Promise<HermesAnalysis>
       status: "draft",
       website_excerpt: websiteExcerpt,
       subject_line: result.subject_line,
-      hook: result.hook,
+      hook,
       confidence_score: Math.min(Math.max(Math.round(result.confidence_score ?? 0), 0), 100),
       contact_first_name: result.contact_first_name ?? null,
       email_body: emailBody,
