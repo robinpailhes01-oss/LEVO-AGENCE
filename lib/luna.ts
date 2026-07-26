@@ -12,7 +12,11 @@ async function getLearnings(): Promise<string | null> {
 }
 
 /** Un tour de chat avec LUNA. Crée le post (statut "idea") au premier message si contentId est absent. */
-export async function chatWithLuna(contentId: string | null, message: string): Promise<{ contentId: string; reply: string }> {
+export async function chatWithLuna(
+  contentId: string | null,
+  message: string,
+  images?: string[],
+): Promise<{ contentId: string; reply: string }> {
   const db = supabaseAdmin();
 
   let row: ContentItem;
@@ -33,7 +37,10 @@ export async function chatWithLuna(contentId: string | null, message: string): P
   const history = (Array.isArray(row.chat_history) ? row.chat_history : []) as ChatTurn[];
 
   const learnings = await getLearnings();
-  const messages: ChatTurn[] = [...history, { role: "user", content: message }];
+  const messages: ChatTurn[] = [
+    ...history,
+    { role: "user", content: message, ...(images?.length ? { images } : {}) },
+  ];
 
   const reply = await callClaudeChat({
     system: lunaSystemPrompt(learnings),

@@ -13,7 +13,7 @@ export async function POST(req: Request): Promise<Response> {
     });
   }
 
-  let body: { content_id?: string; message?: string };
+  let body: { content_id?: string; message?: string; images?: string[] };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -23,9 +23,10 @@ export async function POST(req: Request): Promise<Response> {
   if (!message) {
     return new Response(JSON.stringify({ error: "message requis" }), { status: 400 });
   }
+  const images = Array.isArray(body.images) ? body.images.filter((i) => typeof i === "string").slice(0, 4) : undefined;
 
   try {
-    const result = await chatWithLuna(body.content_id ?? null, message);
+    const result = await chatWithLuna(body.content_id ?? null, message, images);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "content-type": "application/json" },

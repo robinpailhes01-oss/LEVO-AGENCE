@@ -58,6 +58,8 @@ export async function callClaudeJson<T>(opts: ClaudeCall): Promise<T> {
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;
+  /** Images de référence jointes par l'utilisateur (data URI base64), tour "user" uniquement. */
+  images?: string[];
 }
 
 export interface ClaudeChatCall {
@@ -68,6 +70,25 @@ export interface ClaudeChatCall {
   model?: string;
 }
 
+const IMAGE_DATA_URI = /^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/;
+
+function toMessageParam(turn: ChatTurn): Anthropic.MessageParam {
+  if (!turn.images?.length) return { role: turn.role, content: turn.content };
+  const blocks: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[] = [];
+  for (const uri of turn.images) {
+    const match = uri.match(IMAGE_DATA_URI);
+    const mediaType = match?.[1];
+    const data = match?.[2];
+    if (!mediaType || !data) continue;
+    blocks.push({
+      type: "image",
+      source: { type: "base64", media_type: mediaType as Anthropic.ImageBlockParam.Source["media_type"], data },
+    });
+  }
+  blocks.push({ type: "text", text: turn.content });
+  return { role: turn.role, content: blocks };
+}
+
 /** Complétion multi-tour (chat) — pour un agent qui garde le fil d'une conversation, pas un one-shot. */
 export async function callClaudeChat(opts: ClaudeChatCall): Promise<string> {
   const message = await anthropic().messages.create({
@@ -75,7 +96,7 @@ export async function callClaudeChat(opts: ClaudeChatCall): Promise<string> {
     max_tokens: opts.maxTokens ?? 2048,
     temperature: opts.temperature ?? 0.7,
     system: opts.system,
-    messages: opts.messages.map((m) => ({ role: m.role, content: m.content })),
+    messages: opts.messages.map(toMessageParam),
   });
   return message.content
     .filter((b): b is Anthropic.TextBlock => b.type === "text")
