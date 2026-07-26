@@ -3,12 +3,61 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { callClaudeChat, callClaudeJson, type ChatTurn } from "@/lib/claude";
 import { generateSlideImage } from "@/lib/openai";
 import { lunaSystemPrompt, lunaGeneratePrompt, type LunaCarouselResult } from "@/prompts/luna";
-import type { ContentItem } from "@/lib/db";
+import type { ContentItem, LunaReference } from "@/lib/db";
+
+const REFERENCE_LIMIT = 6;
 
 async function getLearnings(): Promise<string | null> {
   const { data } = await supabaseAdmin().from("settings").select("value").eq("key", "luna_learnings").maybeSingle();
   const value = (data as { value: unknown } | null)?.value;
   return typeof value === "string" ? value : null;
+}
+
+/** Texte des apprentissages actuels — pour affichage dans l'UI mémoire. */
+export async function getLearningsText(): Promise<string> {
+  return (await getLearnings()) ?? "";
+}
+
+/** Bibliothèque de références visuelles permanentes, les plus récentes d'abord. */
+export async function listReferences(): Promise<LunaReference[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("luna_references")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as LunaReference[];
+}
+
+/** Ajoute une référence visuelle permanente (image + pourquoi elle compte). */
+export async function addReference(note: string, imageData: string): Promise<LunaReference> {
+  const { data, error } = await supabaseAdmin()
+    .from("luna_references")
+    .insert({ note: note.trim(), image_data: imageData })
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as LunaReference;
+}
+
+export async function deleteReference(id: string): Promise<void> {
+  const { error } = await supabaseAdmin().from("luna_references").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Contexte à injecter au premier message d'une NOUVELLE conversation : les
+ * références visuelles les plus récentes de la bibliothèque, sous forme de
+ * texte + images à fusionner dans le premier tour utilisateur (l'API Claude
+ * exige des rôles alternés — impossible d'insérer un tour "user" séparé
+ * avant le vrai message).
+ */
+async function buildReferencePrefix(): Promise<{ text: string; images: string[] }> {
+  const refs = (await listReferences()).slice(0, REFERENCE_LIMIT);
+  if (refs.length === 0) return { text: "", images: [] };
+  const text = `[Mémoire LUNA — références visuelles permanentes à garder en tête]\n${refs
+    .map((r) => `- ${r.note}`)
+    .join("\n")}\n\n`;
+  return { text, images: refs.map((r) => r.image_data) };
 }
 
 /** Un tour de chat avec LUNA. Crée le post (statut "idea") au premier message si contentId est absent. */
@@ -18,6 +67,7 @@ export async function chatWithLuna(
   images?: string[],
 ): Promise<{ contentId: string; reply: string }> {
   const db = supabaseAdmin();
+  const isNewConversation = !contentId;
 
   let row: ContentItem;
   if (contentId) {
@@ -36,20 +86,26 @@ export async function chatWithLuna(
 
   const history = (Array.isArray(row.chat_history) ? row.chat_history : []) as ChatTurn[];
 
-  const learnings = await getLearnings();
-  const messages: ChatTurn[] = [
-    ...history,
-    { role: "user", content: message, ...(images?.length ? { images } : {}) },
-  ];
+  // Le tour réellement persisté/affiché reste celui que Robin a écrit — la
+  // bibliothèque de références n'est injectée que dans l'appel API du
+  // premier message (pas de rôle "user" séparé possible, l'API exige des
+  // rôles alternés), pour ne pas polluer l'historique visible ni le
+  // re-envoyer à chaque tour suivant.
+  const userTurn: ChatTurn = { role: "user", content: message, ...(images?.length ? { images } : {}) };
+  const prefix = isNewConversation ? await buildReferencePrefix() : { text: "", images: [] };
+  const apiUserTurn: ChatTurn = prefix.text
+    ? { role: "user", content: `${prefix.text}${message}`, images: [...prefix.images, ...(images ?? [])] }
+    : userTurn;
 
+  const learnings = await getLearnings();
   const reply = await callClaudeChat({
     system: lunaSystemPrompt(learnings),
-    messages,
+    messages: [...history, apiUserTurn],
     maxTokens: 1000,
     temperature: 0.8,
   });
 
-  const updatedHistory: ChatTurn[] = [...messages, { role: "assistant", content: reply }];
+  const updatedHistory: ChatTurn[] = [...history, userTurn, { role: "assistant", content: reply }];
   await db.from("content_calendar").update({ chat_history: updatedHistory }).eq("id", row.id);
 
   return { contentId: row.id, reply };

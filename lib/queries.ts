@@ -9,6 +9,7 @@ import type {
   ContentItem,
   HermesAnalysis,
   Lead,
+  LunaReference,
   Niche,
   WeeklyReport,
 } from "@/lib/db";
@@ -327,6 +328,28 @@ export function getContent(): Promise<ContentItem[]> {
     if (error) throw error;
     return (data ?? []) as ContentItem[];
   }, []);
+}
+
+/** Mémoire LUNA — bibliothèque de références visuelles permanentes. */
+export function getLunaReferences(): Promise<LunaReference[]> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("luna_references")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as LunaReference[];
+  }, []);
+}
+
+/** Mémoire LUNA — retours texte accumulés (injectés dans le prompt de chaque génération). */
+export function getLunaLearnings(): Promise<string> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin().from("settings").select("value").eq("key", "luna_learnings").maybeSingle();
+    if (error) throw error;
+    const value = (data as { value: unknown } | null)?.value;
+    return typeof value === "string" ? value : "";
+  }, "");
 }
 
 export function getRecentLogs(limit = 12): Promise<AgentLog[]> {

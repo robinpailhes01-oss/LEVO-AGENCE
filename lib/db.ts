@@ -272,6 +272,14 @@ export interface HermesAnalysis {
   sent_at: string | null;
 }
 
+/** LUNA — référence visuelle permanente (mémoire de style), injectée dans chaque nouveau brief. */
+export interface LunaReference {
+  id: string;
+  created_at: string;
+  note: string;
+  image_data: string;
+}
+
 export interface WatchedAccount {
   id: string;
   platform: "instagram" | "linkedin" | null;

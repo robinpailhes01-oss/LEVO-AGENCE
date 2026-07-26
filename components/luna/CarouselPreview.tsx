@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Wand2, RefreshCw, ThumbsUp } from "lucide-react";
+import { Loader2, Wand2, RefreshCw } from "lucide-react";
 import type { ContentItem } from "@/lib/db";
 
 interface LunaSlide {
@@ -24,8 +24,6 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
   const router = useRouter();
   const [rendering, setRendering] = useState(false);
   const [regenerating, setRegenerating] = useState<number | null>(null);
-  const [note, setNote] = useState("");
-  const [noteState, setNoteState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
 
   if (!item || !Array.isArray(item.slides_content) || item.slides_content.length === 0) return null;
@@ -66,28 +64,6 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
       setError(err instanceof Error ? err.message : "Échec de la régénération.");
     } finally {
       setRegenerating(null);
-    }
-  }
-
-  async function saveNote() {
-    const text = note.trim();
-    if (!text || noteState === "saving") return;
-    setNoteState("saving");
-    setError(null);
-    try {
-      const res = await fetch("/api/luna/learnings", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ note: text }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
-      setNote("");
-      setNoteState("saved");
-      setTimeout(() => setNoteState("idle"), 1500);
-    } catch (err) {
-      setNoteState("idle");
-      setError(err instanceof Error ? err.message : "Échec de l'enregistrement.");
     }
   }
 
@@ -161,29 +137,6 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
           )}
         </div>
       )}
-
-      <div className="flex items-center gap-2 border-t border-line/60 pt-3.5">
-        <input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Note pour améliorer LUNA (ex : accroches trop longues, corriger la couleur X...)"
-          className="flex-1 rounded-xl border border-line bg-white px-3 py-2 text-[12.5px] outline-none focus:border-current"
-        />
-        <button
-          onClick={saveNote}
-          disabled={!note.trim() || noteState === "saving"}
-          className="levo-pressable flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1.5 text-[12.5px] font-medium text-ink disabled:opacity-50"
-        >
-          {noteState === "saving" ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : noteState === "saved" ? (
-            <ThumbsUp className="h-3.5 w-3.5 text-success" />
-          ) : (
-            <ThumbsUp className="h-3.5 w-3.5" />
-          )}
-          {noteState === "saved" ? "Enregistré" : "Envoyer"}
-        </button>
-      </div>
     </div>
   );
 }

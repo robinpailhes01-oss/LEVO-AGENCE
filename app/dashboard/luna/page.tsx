@@ -1,12 +1,17 @@
 import { ContentKanban } from "@/components/luna/ContentKanban";
 import { LunaChat } from "@/components/luna/LunaChat";
+import { LunaMemory } from "@/components/luna/LunaMemory";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getContent } from "@/lib/queries";
+import { getContent, getLunaLearnings, getLunaReferences } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function LunaPage() {
-  const content = await getContent();
+  const [content, learnings, references] = await Promise.all([
+    getContent(),
+    getLunaLearnings(),
+    getLunaReferences(),
+  ]);
   return (
     <div className="space-y-6">
       <PageHeader
@@ -14,6 +19,7 @@ export default async function LunaPage() {
         subtitle="Brief LUNA à l'oral, elle structure le carrousel slide par slide et génère les visuels."
       />
       <LunaChat content={content} />
+      <LunaMemory learnings={learnings} references={references} />
       <ContentKanban content={content} />
     </div>
   );
