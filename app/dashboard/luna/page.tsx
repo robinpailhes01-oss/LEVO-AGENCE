@@ -1,5 +1,4 @@
-import { ContentKanban } from "@/components/luna/ContentKanban";
-import { LunaChat } from "@/components/luna/LunaChat";
+import { LunaWorkspace } from "@/components/luna/LunaWorkspace";
 import { LunaMemory } from "@/components/luna/LunaMemory";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getContent, getLunaLearnings, getLunaReferences } from "@/lib/queries";
@@ -18,9 +17,9 @@ export default async function LunaPage() {
         title="LUNA — Création de contenu"
         subtitle="Brief LUNA à l'oral, elle structure le carrousel slide par slide et génère les visuels."
       />
-      <LunaChat content={content} />
-      <LunaMemory learnings={learnings} references={references} />
-      <ContentKanban content={content} />
+      <LunaWorkspace content={content}>
+        <LunaMemory learnings={learnings} references={references} />
+      </LunaWorkspace>
     </div>
   );
 }

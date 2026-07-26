@@ -210,3 +210,9 @@ export async function addLunaLearning(note: string): Promise<void> {
   const updated = current ? `${current}\n- ${note.trim()}` : `- ${note.trim()}`;
   await db.from("settings").update({ value: updated, updated_at: new Date().toISOString() }).eq("key", "luna_learnings");
 }
+
+/** Supprime un brief/carrousel (conversation + slides + images générées). */
+export async function deleteContent(contentId: string): Promise<void> {
+  const { error } = await supabaseAdmin().from("content_calendar").delete().eq("id", contentId);
+  if (error) throw new Error(error.message);
+}

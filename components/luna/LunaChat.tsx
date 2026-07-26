@@ -17,7 +17,6 @@ interface Attachment {
   dataUri: string;
 }
 
-const STORAGE_KEY = "luna_active_content_id";
 const MAX_IMAGES = 4;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
@@ -35,11 +34,15 @@ function readFileAsDataUri(file: File): Promise<string> {
   });
 }
 
+interface LunaChatProps {
+  content: ContentItem[];
+  activeId: string | null;
+  onActiveIdChange: (id: string | null) => void;
+}
+
 /** Chat LUNA — brief conversationnel persisté en base (texte + images de référence), puis génération du carrousel. */
-export function LunaChat({ content }: { content: ContentItem[] }) {
+export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps) {
   const router = useRouter();
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -48,38 +51,33 @@ export function LunaChat({ content }: { content: ContentItem[] }) {
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const activeItem = activeId ? content.find((c) => c.id === activeId) : undefined;
 
-  // Hydratation initiale depuis localStorage + historique persisté en base.
+  // Resynchronise l'historique affiché avec la base dès qu'elle a rattrapé l'id actif —
+  // ne JAMAIS vider `messages` juste parce que le prop `content` n'a pas encore rafraîchi
+  // (sinon une conversation tout juste créée se fait effacer avant même d'être vue).
   useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-    if (stored) {
-      setActiveId(stored);
-    }
-    setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    if (activeId && !content.find((c) => c.id === activeId)) {
-      localStorage.removeItem(STORAGE_KEY);
-      setActiveId(null);
+    if (!activeId) {
       setMessages([]);
       return;
     }
-    setMessages(readHistory(activeItem));
+    const item = content.find((c) => c.id === activeId);
+    if (item) setMessages(readHistory(item));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, activeId, activeItem?.chat_history]);
+  }, [activeId, activeItem?.chat_history]);
 
   useEffect(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
   }, [messages, sending]);
 
+  useEffect(() => {
+    if (activeId) chatRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [activeId]);
+
   function startNew() {
-    localStorage.removeItem(STORAGE_KEY);
-    setActiveId(null);
+    onActiveIdChange(null);
     setMessages([]);
     setInput("");
     setAttachments([]);
@@ -130,8 +128,7 @@ export function LunaChat({ content }: { content: ContentItem[] }) {
       const data = (await res.json()) as { contentId?: string; reply?: string; error?: string };
       if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
       if (data.contentId && data.contentId !== activeId) {
-        setActiveId(data.contentId);
-        localStorage.setItem(STORAGE_KEY, data.contentId);
+        onActiveIdChange(data.contentId);
       }
       setMessages((m) => [...m, { role: "assistant", content: data.reply ?? "" }]);
       router.refresh();
@@ -169,7 +166,7 @@ export function LunaChat({ content }: { content: ContentItem[] }) {
   const canGenerate = activeId && !activeItem?.slides_content && userTurns >= 1;
 
   return (
-    <div className="space-y-4">
+    <div ref={chatRef} className="space-y-4 scroll-mt-6">
       <div className="levo-card flex h-[520px] flex-col overflow-hidden p-0">
         <div className="flex items-center justify-between border-b border-line/60 px-4 py-2.5">
           <span className="text-[12.5px] font-medium text-muted">

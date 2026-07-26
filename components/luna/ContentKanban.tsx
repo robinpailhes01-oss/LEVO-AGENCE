@@ -1,4 +1,8 @@
-import { Images } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Images, Loader2, Trash2 } from "lucide-react";
 import type { ContentItem, ContentStatus } from "@/lib/db";
 
 const COLUMNS: { key: string; label: string; statuses: ContentStatus[] }[] = [
@@ -25,13 +29,40 @@ function fmtDate(iso: string): string {
   }
 }
 
-export function ContentKanban({ content }: { content: ContentItem[] }) {
+interface ContentKanbanProps {
+  content: ContentItem[];
+  activeId?: string | null;
+  onSelect?: (id: string | null) => void;
+}
+
+/** Kanban des briefs/carrousels LUNA — cliquer une carte la rouvre dans le chat au-dessus. */
+export function ContentKanban({ content, activeId, onSelect }: ContentKanbanProps) {
+  const router = useRouter();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleDelete(e: React.MouseEvent, id: string) {
+    e.stopPropagation();
+    if (deletingId) return;
+    if (!confirm("Supprimer ce brief/carrousel ? Cette action est définitive.")) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/luna/${id}`, { method: "DELETE" });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
+      if (activeId === id) onSelect?.(null);
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Échec de la suppression.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   if (content.length === 0) {
     return (
       <div className="levo-card p-10 text-center">
         <p className="text-sm text-muted">
-          Aucun contenu pour l'instant. Le bouton « Générer des idées » (branché à
-          l'étape LUNA) créera des idées ici, dans la table <code>content_calendar</code>.
+          Aucun contenu pour l'instant. Brief LUNA dans le chat au-dessus pour créer une première idée ici.
         </p>
       </div>
     );
@@ -56,12 +87,25 @@ export function ContentKanban({ content }: { content: ContentItem[] }) {
                 items.map((c) => (
                   <div
                     key={c.id}
-                    className="levo-card levo-pressable cursor-pointer p-3.5 hover:-translate-y-0.5 hover:shadow-lift"
+                    onClick={() => onSelect?.(c.id)}
+                    className={`levo-card levo-pressable group relative cursor-pointer p-3.5 hover:-translate-y-0.5 hover:shadow-lift ${
+                      activeId === c.id ? "ring-2 ring-luna" : ""
+                    }`}
                   >
-                    <span className="inline-flex items-center gap-1 rounded-full bg-luna/[0.08] px-2 py-0.5 text-[10px] font-medium text-luna">
-                      <Images className="h-3 w-3" />
-                      {c.theme ? THEME_LABEL[c.theme] ?? c.theme : "Contenu"}
-                    </span>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-luna/[0.08] px-2 py-0.5 text-[10px] font-medium text-luna">
+                        <Images className="h-3 w-3" />
+                        {c.theme ? THEME_LABEL[c.theme] ?? c.theme : "Contenu"}
+                      </span>
+                      <button
+                        onClick={(e) => handleDelete(e, c.id)}
+                        disabled={deletingId === c.id}
+                        className="levo-pressable shrink-0 rounded-lg p-1 text-muted opacity-0 hover:text-danger group-hover:opacity-100"
+                        aria-label="Supprimer"
+                      >
+                        {deletingId === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
                     <p className="mt-2.5 text-[13.5px] font-medium leading-snug text-ink">
                       {c.title}
                     </p>
