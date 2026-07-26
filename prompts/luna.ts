@@ -34,27 +34,42 @@ répétitives automatisées (demandes WhatsApp/Instagram/email, contrats, factur
 COMMENT LES SLIDES SONT VRAIMENT RENDUES (important)
 Chaque slide n'est PAS une image générée par un modèle — c'est un rendu texte
 vectoriel déterministe (satori/resvg), donc le texte est toujours parfaitement
-net et fidèle à la charte. Concrètement, une slide = : un fond uni ("creme",
-"vert" ou "navy"), un badge pill en haut à gauche (un label court), un titre
-(soit en Inter noir 900 sans-serif serré, soit en Playfair Display italique
-élégant), un corps de texte italique en dessous — dont certains mots/phrases
-peuvent être surlignés d'un bandeau noir ("surlignes") —, éventuellement une
-citation courte posée dans une capsule ronde juste après ("citation"), une
-flèche → bleue, et un bandeau de signature "● Luma" / "Suite →" en bas. Ton
-travail est donc de choisir le TEXTE et ces paramètres de mise en page par
-slide — jamais de décrire un objet 3D, une photo ou un mockup, le rendu ne
-sait pas en générer.
+net et fidèle à la charte. Toutes les slides partagent : un fond uni ("creme",
+"vert" ou "navy"), un badge pill en haut à gauche (un label court), une
+flèche → bleue, un bandeau de signature "● Luma" / "Suite →" en bas. Le
+CONTENU du milieu dépend du "gabarit" choisi (3 possibles — VARIE-LES dans un
+même carrousel, ne reste jamais sur un seul gabarit du début à la fin,
+c'est ce qui rend un post vivant plutôt que toujours le même bloc de texte
+centré avec plein de vide autour) :
+- "minimal" : titre + un court corps italique en dessous, éventuellement
+  surligné ("surlignes") ou suivi d'une citation en capsule ("citation").
+  Le gabarit le plus aéré — réserve-le aux slides qui doivent respirer
+  (accroche, transition, CTA final), pas à tout le carrousel.
+  Champs utilisés : titre, corps, surlignes?, citation?.
+- "liste" : titre + jusqu'à 5 points courts (puces), plus dense, remplit
+  bien plus l'espace — utilise-le pour les slides à contenu informatif
+  (étapes, conseils, ce qui change). Champs utilisés : titre, points[],
+  surlignes? (s'applique aux points).
+- "chiffre" : une statistique géante en héros (ex. "3h", "90%", "+10/jour")
+  + titre courte légende + corps en petite précision. Pour les slides de
+  résultat/preuve. Champs utilisés : chiffre, titre, corps?.
+Ton travail est donc de choisir le TEXTE, le gabarit, et les paramètres de
+mise en page par slide — jamais de décrire un objet 3D, une photo ou un
+mockup, le rendu ne sait pas en générer.
 
 RÈGLES VISUELLES ABSOLUES
 Fonds autorisés UNIQUEMENT : "creme" (#F0EDE6, principal), "vert" (#1A2E1A,
 fond sombre, résultats), "navy" (#0D1117, fond sombre, solutions).
 ZÉRO orange, ZÉRO terracotta, ZÉRO gradient chaud — jamais, sous aucun prétexte.
 Alterne les fonds d'une slide à l'autre : jamais 3 slides identiques de suite.
-Alterne aussi "style_titre" (sans/serif) pour varier le rythme visuel — pas
-tout le carrousel dans un seul style.
+Alterne aussi "gabarit" et "style_titre" (sans/serif) pour varier le rythme
+visuel — jamais 2 slides "minimal" d'affilée, un carrousel de 5-6 slides doit
+mélanger au moins 2 gabarits différents (typiquement : minimal pour l'accroche
+et le CTA, liste ou chiffre pour le cœur du post).
 Titre : COURT, percutant, 8-9 mots maximum (le rendu réduit la taille de
 police automatiquement si c'est plus long, donc mieux vaut faire court).
-Corps : 1-2 phrases maximum, jamais un pavé.
+Corps (gabarit minimal/chiffre) : 1-2 phrases maximum, jamais un pavé.
+Points (gabarit liste) : 2-5 puces, chacune une phrase courte (<14 mots).
 Label (badge du haut) : 1 à 3 mots, MAJUSCULES implicites (le rendu les met
 en capitales), ex. "SOLUTION IA", "ÉTUDE DE CAS", "AVANT / APRÈS".
 Mixed case partout ailleurs (jamais tout en majuscules dans le titre/corps).
@@ -143,21 +158,25 @@ ${transcript}
 """
 
 À partir de ce brief, produis le carrousel complet en JSON. Pour chaque
-slide, choisis "fond" (creme/vert/navy, en alternant), "style_titre"
-(sans/serif, en variant), un "label" court (1-3 mots), un "titre" court et
-percutant, et un "corps" d'1-2 phrases. "surlignes" (facultatif) : 1-3
-expressions EXACTES copiées depuis "corps" à surligner, sur 1-3 slides du
-carrousel max. "citation" (facultatif) : une courte phrase choc, sur une
-slide de temps en temps. Rappel : ces slides sont rendues par un moteur de
-mise en page déterministe, pas par un modèle d'image — ne décris jamais un
-visuel, choisis juste le texte et ces paramètres.
+slide, choisis "gabarit" ("minimal" | "liste" | "chiffre", EN VARIANT — pas
+le même sur tout le carrousel), "fond" (creme/vert/navy, en alternant),
+"style_titre" (sans/serif, en variant), un "label" court (1-3 mots), un
+"titre" court et percutant. Puis selon le gabarit : "corps" (minimal/chiffre,
+1-2 phrases), "points" (liste, 2-5 puces courtes), "chiffre" (chiffre, la
+statistique géante, ex. "3h" ou "90%"). "surlignes" (facultatif, minimal ou
+liste) : expressions EXACTES copiées depuis le texte à surligner, sur
+quelques slides seulement. "citation" (facultatif, minimal uniquement) : une
+courte phrase choc. Rappel : ces slides sont rendues par un moteur de mise en
+page déterministe, pas par un modèle d'image — ne décris jamais un visuel,
+choisis juste le texte, le gabarit et ces paramètres.
 
 Renvoie UNIQUEMENT ce JSON :
 {
   "theme": "cas_client" | "hook_probleme" | "educatif" | "solution" | "methode",
   "sujet": string,
-  "slides": [ { "titre": string, "corps": string, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string } ],
+  "slides": [ { "titre": string, "gabarit": "minimal" | "liste" | "chiffre", "corps": string, "points": string[], "chiffre": string, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string } ],
   "caption": string,
   "hashtags": string[]
-}`;
+}
+(laisse "corps"/"points"/"chiffre" vides — "" ou [] — quand le gabarit ne les utilise pas)`;
 }

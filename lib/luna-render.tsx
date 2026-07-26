@@ -11,7 +11,14 @@ import path from "node:path";
  * précises — il "dessine" du texte approximatif. Ici le texte est du vrai
  * texte vectoriel, la mise en page est déterministe, donc toujours fidèle à
  * la charte Luma.
+ *
+ * 3 gabarits (pas qu'un seul skeleton recoloré) pour une vraie variété
+ * structurelle d'un post à l'autre, et pour éviter que chaque slide ait le
+ * même excès d'espace vide : "minimal" (punchline, aéré, l'original),
+ * "liste" (points denses type listicle), "chiffre" (stat géante en héros).
  */
+
+export type LunaGabarit = "minimal" | "liste" | "chiffre";
 
 export interface LunaSlide {
   titre: string;
@@ -19,9 +26,14 @@ export interface LunaSlide {
   fond: "creme" | "vert" | "navy";
   style_titre: "sans" | "serif";
   label: string;
-  /** Mots/phrases du corps à surligner (bandeau noir), extraits exacts de `corps`. */
+  gabarit?: LunaGabarit;
+  /** Gabarit "liste" : 2-4 points courts. */
+  points?: string[];
+  /** Gabarit "chiffre" : la statistique géante affichée en héros (ex. "3h", "90%"). */
+  chiffre?: string;
+  /** Mots/phrases à surligner (bandeau noir), extraits exacts de `corps` (minimal) ou d'un point (liste). */
   surlignes?: string[];
-  /** Citation courte affichée dans une capsule ronde après le corps (facultatif). */
+  /** Citation courte affichée dans une capsule ronde après le corps (gabarit "minimal" uniquement). */
   citation?: string;
 }
 
@@ -58,17 +70,22 @@ function loadFonts(): Promise<FontEntry[]> {
   return fontsPromise;
 }
 
-/** Taille de titre déterministe selon la longueur — évite un titre trop long de déborder du cadre. */
-function titleFontSize(text: string, style: LunaSlide["style_titre"]): number {
-  const len = text.length;
-  const steps: [number, number][] =
-    style === "serif"
-      ? [[30, 68], [50, 58], [70, 50], [Infinity, 44]]
-      : [[30, 78], [50, 66], [70, 56], [Infinity, 48]];
+/** Taille de police déterministe selon la longueur — évite un texte trop long de déborder du cadre. */
+function scaledFontSize(text: string, steps: [number, number][], fallback: number): number {
   for (const [max, size] of steps) {
-    if (len <= max) return size;
+    if (text.length <= max) return size;
   }
-  return style === "serif" ? 44 : 48;
+  return fallback;
+}
+
+function titleFontSize(text: string, style: LunaSlide["style_titre"]): number {
+  return style === "serif"
+    ? scaledFontSize(text, [[30, 68], [50, 58], [70, 50], [Infinity, 44]], 44)
+    : scaledFontSize(text, [[30, 78], [50, 66], [70, 56], [Infinity, 48]], 48);
+}
+
+function statFontSize(text: string): number {
+  return scaledFontSize(text, [[4, 190], [8, 150], [14, 110]], 80);
 }
 
 function truncate(text: string, max: number): string {
@@ -89,6 +106,32 @@ function splitHighlights(text: string, highlights: string[] | undefined): { text
     .split(re)
     .filter((part) => part.length > 0)
     .map((part) => ({ text: part, hl: terms.some((t) => t.toLowerCase() === part.toLowerCase()) }));
+}
+
+function HighlightedText({
+  text,
+  highlights,
+  style,
+}: {
+  text: string;
+  highlights: string[] | undefined;
+  style: Record<string, unknown>;
+}) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", ...style }}>
+      {splitHighlights(text, highlights).map((seg, i) =>
+        seg.hl ? (
+          <span key={i} style={{ color: "#FFFFFF", backgroundColor: FOOTER_BG, padding: "2px 8px", margin: "2px 4px 2px 0" }}>
+            {seg.text}
+          </span>
+        ) : (
+          <span key={i} style={{ opacity: 0.72 }}>
+            {seg.text}
+          </span>
+        ),
+      )}
+    </div>
+  );
 }
 
 /**
@@ -116,140 +159,123 @@ async function loadAdditionalAsset(code: string, segment: string): Promise<strin
   }
 }
 
-export async function renderSlideToPng(slide: LunaSlide, index: number, total: number): Promise<string> {
-  const palette = PALETTE[slide.fond];
-  const fonts = await loadFonts();
-  const corps = truncate(slide.corps, 220);
-  const isLast = index === total - 1;
+function Badge({ label, color }: { label: string; color: string }) {
+  if (!label) return null;
+  return (
+    <div style={{ display: "flex", position: "absolute", top: "56px", left: "56px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 16px", borderRadius: "50px", border: `1px solid ${ACCENT}` }}>
+        <div style={{ display: "flex", width: "6px", height: "6px", borderRadius: "3px", backgroundColor: ACCENT }} />
+        <span style={{ fontFamily: "Inter", fontWeight: 600, fontSize: "14px", letterSpacing: "0.08em", textTransform: "uppercase", color }}>
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
 
+function Footer({ isLast }: { isLast: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "64px", backgroundColor: FOOTER_BG, padding: "0 32px" }}>
+      <span style={{ fontFamily: "Inter", fontWeight: 600, fontSize: "16px", color: "#FFFFFF" }}>● Luma</span>
+      <span style={{ display: "flex", fontFamily: "Inter", fontWeight: 500, fontSize: "15px", color: "#FFFFFF" }}>{isLast ? "" : "Suite →"}</span>
+    </div>
+  );
+}
+
+function Arrow() {
+  return (
+    <div style={{ display: "flex", position: "absolute", left: "64px", bottom: "128px" }}>
+      <span style={{ fontFamily: "Inter", fontWeight: 700, fontSize: "30px", color: ACCENT }}>→</span>
+    </div>
+  );
+}
+
+function MinimalBody({ slide, palette }: { slide: LunaSlide; palette: (typeof PALETTE)[LunaSlide["fond"]] }) {
   const titleStyle =
     slide.style_titre === "serif"
       ? { fontFamily: "Playfair Display", fontStyle: "italic" as const, fontWeight: 500, lineHeight: 1.08 }
       : { fontFamily: "Inter", fontWeight: 900, letterSpacing: "-3px", lineHeight: 0.94 };
+  const corps = truncate(slide.corps, 220);
 
-  const tree = (
-    <div
-      style={{
-        width: `${SIZE}px`,
-        height: `${SIZE}px`,
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: palette.bg,
-        position: "relative",
-      }}
-    >
-      {slide.label && (
-        <div style={{ display: "flex", position: "absolute", top: "56px", left: "56px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "7px 16px",
-              borderRadius: "50px",
-              border: `1px solid ${ACCENT}`,
-            }}
-          >
-            <div style={{ display: "flex", width: "6px", height: "6px", borderRadius: "3px", backgroundColor: ACCENT }} />
-            <span
-              style={{
-                fontFamily: "Inter",
-                fontWeight: 600,
-                fontSize: "14px",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: palette.text,
-              }}
-            >
-              {slide.label}
-            </span>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", padding: "0 64px" }}>
+      <span style={{ ...titleStyle, fontSize: `${titleFontSize(slide.titre, slide.style_titre)}px`, color: palette.text }}>{slide.titre}</span>
+      <HighlightedText
+        text={corps}
+        highlights={slide.surlignes}
+        style={{ fontFamily: "Playfair Display", fontStyle: "italic", fontWeight: 400, fontSize: "29px", lineHeight: 1.5, marginTop: "26px", color: palette.sub }}
+      />
+      {slide.citation && (
+        <div style={{ display: "flex", marginTop: "22px" }}>
+          <div style={{ display: "flex", backgroundColor: "#0D1117", borderRadius: "50px", padding: "12px 24px", transform: "rotate(-1.5deg)" }}>
+            <span style={{ fontFamily: "Playfair Display", fontStyle: "italic", fontWeight: 500, fontSize: "24px", color: "#FFFFFF" }}>{slide.citation}</span>
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", padding: "0 64px" }}>
-        <span style={{ ...titleStyle, fontSize: `${titleFontSize(slide.titre, slide.style_titre)}px`, color: palette.text }}>
-          {slide.titre}
-        </span>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            fontFamily: "Playfair Display",
-            fontStyle: "italic",
-            fontWeight: 400,
-            fontSize: "29px",
-            lineHeight: 1.5,
-            marginTop: "26px",
-          }}
-        >
-          {splitHighlights(corps, slide.surlignes).map((seg, i) =>
-            seg.hl ? (
-              <span
-                key={i}
-                style={{
-                  color: "#FFFFFF",
-                  backgroundColor: FOOTER_BG,
-                  padding: "2px 8px",
-                  margin: "2px 4px 2px 0",
-                }}
-              >
-                {seg.text}
-              </span>
-            ) : (
-              <span key={i} style={{ color: palette.sub, opacity: 0.72 }}>
-                {seg.text}
-              </span>
-            ),
-          )}
-        </div>
-
-        {slide.citation && (
-          <div style={{ display: "flex", marginTop: "22px" }}>
-            <div
-              style={{
-                display: "flex",
-                backgroundColor: "#0D1117",
-                borderRadius: "50px",
-                padding: "12px 24px",
-                transform: "rotate(-1.5deg)",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "Playfair Display",
-                  fontStyle: "italic",
-                  fontWeight: 500,
-                  fontSize: "24px",
-                  color: "#FFFFFF",
-                }}
-              >
-                {slide.citation}
-              </span>
-            </div>
+function ListeBody({ slide, palette }: { slide: LunaSlide; palette: (typeof PALETTE)[LunaSlide["fond"]] }) {
+  const points = (slide.points ?? []).slice(0, 5).map((p) => truncate(p, 90));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", padding: "0 64px" }}>
+      <span style={{ fontFamily: "Inter", fontWeight: 900, letterSpacing: "-2px", lineHeight: 0.98, fontSize: `${titleFontSize(slide.titre, "sans") - 6}px`, color: palette.text }}>
+        {slide.titre}
+      </span>
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "32px" }}>
+        {points.map((p, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
+            <span style={{ display: "flex", fontFamily: "Inter", fontWeight: 700, fontSize: "24px", color: ACCENT }}>—</span>
+            <HighlightedText
+              text={p}
+              highlights={slide.surlignes}
+              style={{ fontFamily: "Inter", fontWeight: 600, fontSize: "25px", lineHeight: 1.4, color: palette.text, flex: 1 }}
+            />
           </div>
-        )}
+        ))}
       </div>
+    </div>
+  );
+}
 
-      <div style={{ display: "flex", position: "absolute", left: "64px", bottom: "128px" }}>
-        <span style={{ fontFamily: "Inter", fontWeight: 700, fontSize: "30px", color: ACCENT }}>→</span>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: "64px",
-          backgroundColor: FOOTER_BG,
-          padding: "0 32px",
-        }}
-      >
-        <span style={{ fontFamily: "Inter", fontWeight: 600, fontSize: "16px", color: "#FFFFFF" }}>● Luma</span>
-        <span style={{ display: "flex", fontFamily: "Inter", fontWeight: 500, fontSize: "15px", color: "#FFFFFF" }}>
-          {isLast ? "" : "Suite →"}
+function ChiffreBody({ slide, palette }: { slide: LunaSlide; palette: (typeof PALETTE)[LunaSlide["fond"]] }) {
+  const chiffre = slide.chiffre ?? "";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", padding: "0 64px" }}>
+      <span style={{ fontFamily: "Inter", fontWeight: 900, letterSpacing: "-6px", lineHeight: 0.85, fontSize: `${statFontSize(chiffre)}px`, color: ACCENT }}>
+        {chiffre}
+      </span>
+      <span style={{ fontFamily: "Inter", fontWeight: 700, fontSize: "34px", letterSpacing: "-1px", color: palette.text, marginTop: "20px" }}>
+        {slide.titre}
+      </span>
+      {slide.corps && (
+        <span style={{ display: "flex", fontFamily: "Playfair Display", fontStyle: "italic", fontWeight: 400, fontSize: "26px", color: palette.sub, opacity: 0.72, marginTop: "12px" }}>
+          {truncate(slide.corps, 140)}
         </span>
-      </div>
+      )}
+    </div>
+  );
+}
+
+export async function renderSlideToPng(slide: LunaSlide, index: number, total: number): Promise<string> {
+  const palette = PALETTE[slide.fond];
+  const fonts = await loadFonts();
+  const isLast = index === total - 1;
+  const gabarit = slide.gabarit ?? "minimal";
+
+  const tree = (
+    <div style={{ width: `${SIZE}px`, height: `${SIZE}px`, display: "flex", flexDirection: "column", backgroundColor: palette.bg, position: "relative" }}>
+      <Badge label={slide.label} color={palette.text} />
+      {gabarit === "liste" ? (
+        <ListeBody slide={slide} palette={palette} />
+      ) : gabarit === "chiffre" ? (
+        <ChiffreBody slide={slide} palette={palette} />
+      ) : (
+        <MinimalBody slide={slide} palette={palette} />
+      )}
+      <Arrow />
+      <Footer isLast={isLast} />
     </div>
   );
 
