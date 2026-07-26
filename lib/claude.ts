@@ -54,3 +54,32 @@ export async function callClaudeJson<T>(opts: ClaudeCall): Promise<T> {
     throw new Error("La réponse du modèle n'est pas un JSON valide.");
   }
 }
+
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ClaudeChatCall {
+  system: string;
+  messages: ChatTurn[];
+  maxTokens?: number;
+  temperature?: number;
+  model?: string;
+}
+
+/** Complétion multi-tour (chat) — pour un agent qui garde le fil d'une conversation, pas un one-shot. */
+export async function callClaudeChat(opts: ClaudeChatCall): Promise<string> {
+  const message = await anthropic().messages.create({
+    model: opts.model ?? CLAUDE_MODEL,
+    max_tokens: opts.maxTokens ?? 2048,
+    temperature: opts.temperature ?? 0.7,
+    system: opts.system,
+    messages: opts.messages.map((m) => ({ role: m.role, content: m.content })),
+  });
+  return message.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("\n")
+    .trim();
+}

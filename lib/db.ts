@@ -180,6 +180,8 @@ export interface ContentItem {
   generated_images: string[] | null;
   caption: string | null;
   hashtags: string[] | null;
+  /** Historique de chat LUNA ayant mené à ce post — {role, content}[]. */
+  chat_history: unknown;
   scheduled_at: string | null;
   published_at: string | null;
   created_by: string | null;

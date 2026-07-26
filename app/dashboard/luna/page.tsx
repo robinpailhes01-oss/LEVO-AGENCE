@@ -1,5 +1,5 @@
 import { ContentKanban } from "@/components/luna/ContentKanban";
-import { AgentChatWidget } from "@/components/chat/AgentChatWidget";
+import { LunaChat } from "@/components/luna/LunaChat";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getContent } from "@/lib/queries";
 
@@ -11,9 +11,9 @@ export default async function LunaPage() {
     <div className="space-y-6">
       <PageHeader
         title="LUNA — Création de contenu"
-        subtitle="Brief LUNA à l'oral, elle structure le carrousel slide par slide."
+        subtitle="Brief LUNA à l'oral, elle structure le carrousel slide par slide et génère les visuels."
       />
-      <AgentChatWidget agent="luna" accent="#1A3BFF" placeholder="Brief LUNA (client, sujet, chiffres...)" />
+      <LunaChat content={content} />
       <ContentKanban content={content} />
     </div>
   );

@@ -12,7 +12,7 @@ export const runtime = "nodejs";
  * publique pourrait envoyer des messages illimités vers le VPS de Robin,
  * en dépensant sa clé Hermes/ses ressources).
  */
-const AGENTS = new Set(["luna", "mila", "alex", "hermes"]);
+const AGENTS = new Set(["mila", "alex"]);
 
 export async function POST(req: Request, context: { params: Promise<{ agent: string }> }): Promise<Response> {
   if (!(await isAuthenticated())) {
