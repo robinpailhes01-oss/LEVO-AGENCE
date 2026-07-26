@@ -78,6 +78,13 @@ export const serverEnv = {
   get auditSiteUrl(): string {
     return process.env.AUDIT_SITE_URL ?? "https://levo-plum.vercel.app";
   },
+  /** Micro-serveur Hermes (VPS Robin) exposant chaque agent en HTTP — /chat/<agent>. */
+  get hermesApiUrl(): string {
+    return required("HERMES_API_URL", process.env.HERMES_API_URL);
+  },
+  get hermesApiToken(): string {
+    return required("HERMES_API_TOKEN", process.env.HERMES_API_TOKEN);
+  },
 } as const;
 
 /** True si Supabase est configuré (sans lever d'erreur). Pour dégrader proprement. */
