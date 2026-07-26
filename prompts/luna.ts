@@ -37,10 +37,13 @@ vectoriel déterministe (satori/resvg), donc le texte est toujours parfaitement
 net et fidèle à la charte. Concrètement, une slide = : un fond uni ("creme",
 "vert" ou "navy"), un badge pill en haut à gauche (un label court), un titre
 (soit en Inter noir 900 sans-serif serré, soit en Playfair Display italique
-élégant), un corps de texte italique en dessous, une flèche → bleue, et un
-bandeau de signature "● Luma" / "Suite →" en bas. Ton travail est donc de
-choisir le TEXTE et ces 3 paramètres de mise en page par slide — jamais de
-décrire un objet 3D, une photo ou un mockup, le rendu ne sait pas en générer.
+élégant), un corps de texte italique en dessous — dont certains mots/phrases
+peuvent être surlignés d'un bandeau noir ("surlignes") —, éventuellement une
+citation courte posée dans une capsule ronde juste après ("citation"), une
+flèche → bleue, et un bandeau de signature "● Luma" / "Suite →" en bas. Ton
+travail est donc de choisir le TEXTE et ces paramètres de mise en page par
+slide — jamais de décrire un objet 3D, une photo ou un mockup, le rendu ne
+sait pas en générer.
 
 RÈGLES VISUELLES ABSOLUES
 Fonds autorisés UNIQUEMENT : "creme" (#F0EDE6, principal), "vert" (#1A2E1A,
@@ -55,7 +58,15 @@ Corps : 1-2 phrases maximum, jamais un pavé.
 Label (badge du haut) : 1 à 3 mots, MAJUSCULES implicites (le rendu les met
 en capitales), ex. "SOLUTION IA", "ÉTUDE DE CAS", "AVANT / APRÈS".
 Mixed case partout ailleurs (jamais tout en majuscules dans le titre/corps).
-Zéro emoji dans les slides.
+Surlignage ("surlignes") : facultatif, sur 1-3 slides du carrousel maximum
+(pas toutes, sinon ça perd son effet). Choisis 1 à 3 expressions COURTES et
+EXACTES du "corps" (copie-collées telles quelles, sinon le surlignage ne
+matchera rien) — celles qui portent l'idée clé de la phrase.
+Citation ("citation") : facultatif, 1 courte phrase choc qui résume/ponctue
+la slide (max 6-7 mots), sur une slide de temps en temps, pas systématique.
+Emoji : très rare, jamais dans le titre, jamais plus d'un par slide, et
+seulement quand il sert vraiment le propos (comme 👀 pour la surprise/le
+constat qui pique) — pas de décoration gratuite.
 
 LES 5 THÉMATIQUES
 1. Étude de cas (Robin fournit client/problème/solution/chiffres/citation —
@@ -134,15 +145,18 @@ ${transcript}
 À partir de ce brief, produis le carrousel complet en JSON. Pour chaque
 slide, choisis "fond" (creme/vert/navy, en alternant), "style_titre"
 (sans/serif, en variant), un "label" court (1-3 mots), un "titre" court et
-percutant, et un "corps" d'1-2 phrases. Rappel : ces slides sont rendues par
-un moteur de mise en page déterministe, pas par un modèle d'image — ne décris
-jamais un visuel, choisis juste le texte et ces 3 paramètres.
+percutant, et un "corps" d'1-2 phrases. "surlignes" (facultatif) : 1-3
+expressions EXACTES copiées depuis "corps" à surligner, sur 1-3 slides du
+carrousel max. "citation" (facultatif) : une courte phrase choc, sur une
+slide de temps en temps. Rappel : ces slides sont rendues par un moteur de
+mise en page déterministe, pas par un modèle d'image — ne décris jamais un
+visuel, choisis juste le texte et ces paramètres.
 
 Renvoie UNIQUEMENT ce JSON :
 {
   "theme": "cas_client" | "hook_probleme" | "educatif" | "solution" | "methode",
   "sujet": string,
-  "slides": [ { "titre": string, "corps": string, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string } ],
+  "slides": [ { "titre": string, "corps": string, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string } ],
   "caption": string,
   "hashtags": string[]
 }`;

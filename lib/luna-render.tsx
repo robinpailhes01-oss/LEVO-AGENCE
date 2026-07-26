@@ -19,6 +19,10 @@ export interface LunaSlide {
   fond: "creme" | "vert" | "navy";
   style_titre: "sans" | "serif";
   label: string;
+  /** Mots/phrases du corps à surligner (bandeau noir), extraits exacts de `corps`. */
+  surlignes?: string[];
+  /** Citation courte affichée dans une capsule ronde après le corps (facultatif). */
+  citation?: string;
 }
 
 const PALETTE: Record<LunaSlide["fond"], { bg: string; text: string; sub: string }> = {
@@ -69,6 +73,47 @@ function titleFontSize(text: string, style: LunaSlide["style_titre"]): number {
 
 function truncate(text: string, max: number): string {
   return text.length > max ? `${text.slice(0, max - 1).trim()}…` : text;
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Découpe `text` en segments normaux/surlignés pour un rendu type "surligneur". */
+function splitHighlights(text: string, highlights: string[] | undefined): { text: string; hl: boolean }[] {
+  const terms = (highlights ?? []).map((h) => h.trim()).filter(Boolean);
+  if (terms.length === 0) return [{ text, hl: false }];
+  const sorted = [...terms].sort((a, b) => b.length - a.length);
+  const re = new RegExp(`(${sorted.map(escapeRegExp).join("|")})`, "g");
+  return text
+    .split(re)
+    .filter((part) => part.length > 0)
+    .map((part) => ({ text: part, hl: terms.some((t) => t.toLowerCase() === part.toLowerCase()) }));
+}
+
+/**
+ * Fallback emoji : satori ne sait pas dessiner de glyphes couleur (aucune de
+ * nos polices n'en contient). `graphemeImages` exige une map à clés connues
+ * à l'avance (Object.assign en interne ne déclenche pas de Proxy paresseux) —
+ * on utilise donc `loadAdditionalAsset`, appelé à la volée pour tout segment
+ * non couvert par les polices fournies, qui va chercher le SVG Twemoji.
+ */
+async function loadAdditionalAsset(code: string, segment: string): Promise<string> {
+  if (code !== "emoji") return "";
+  const codepoints = Array.from(segment)
+    .map((c) => c.codePointAt(0)?.toString(16))
+    .filter(Boolean)
+    .join("-");
+  const url = `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${codepoints}.svg`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return "";
+    const svgText = await res.text();
+    return `data:image/svg+xml;base64,${Buffer.from(svgText).toString("base64")}`;
+  } catch (err) {
+    console.error("[luna:emoji-fallback]", err);
+    return "";
+  }
 }
 
 export async function renderSlideToPng(slide: LunaSlide, index: number, total: number): Promise<string> {
@@ -126,21 +171,64 @@ export async function renderSlideToPng(slide: LunaSlide, index: number, total: n
         <span style={{ ...titleStyle, fontSize: `${titleFontSize(slide.titre, slide.style_titre)}px`, color: palette.text }}>
           {slide.titre}
         </span>
-        <span
+        <div
           style={{
             display: "flex",
+            flexWrap: "wrap",
             fontFamily: "Playfair Display",
             fontStyle: "italic",
             fontWeight: 400,
             fontSize: "29px",
-            lineHeight: 1.4,
-            color: palette.sub,
-            opacity: 0.72,
+            lineHeight: 1.5,
             marginTop: "26px",
           }}
         >
-          {corps}
-        </span>
+          {splitHighlights(corps, slide.surlignes).map((seg, i) =>
+            seg.hl ? (
+              <span
+                key={i}
+                style={{
+                  color: "#FFFFFF",
+                  backgroundColor: FOOTER_BG,
+                  padding: "2px 8px",
+                  margin: "2px 4px 2px 0",
+                }}
+              >
+                {seg.text}
+              </span>
+            ) : (
+              <span key={i} style={{ color: palette.sub, opacity: 0.72 }}>
+                {seg.text}
+              </span>
+            ),
+          )}
+        </div>
+
+        {slide.citation && (
+          <div style={{ display: "flex", marginTop: "22px" }}>
+            <div
+              style={{
+                display: "flex",
+                backgroundColor: "#0D1117",
+                borderRadius: "50px",
+                padding: "12px 24px",
+                transform: "rotate(-1.5deg)",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "Playfair Display",
+                  fontStyle: "italic",
+                  fontWeight: 500,
+                  fontSize: "24px",
+                  color: "#FFFFFF",
+                }}
+              >
+                {slide.citation}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", position: "absolute", left: "64px", bottom: "128px" }}>
@@ -165,7 +253,7 @@ export async function renderSlideToPng(slide: LunaSlide, index: number, total: n
     </div>
   );
 
-  const svg = await satori(tree, { width: SIZE, height: SIZE, fonts });
+  const svg = await satori(tree, { width: SIZE, height: SIZE, fonts, loadAdditionalAsset });
   const png = new Resvg(svg, { fitTo: { mode: "width", value: SIZE } }).render().asPng();
   return `data:image/png;base64,${png.toString("base64")}`;
 }
