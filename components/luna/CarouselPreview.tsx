@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Wand2, RefreshCw } from "lucide-react";
+import { Loader2, Wand2, RefreshCw, Download } from "lucide-react";
 import type { ContentItem } from "@/lib/db";
 
 interface LunaSlide {
@@ -30,6 +30,23 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
 
   const slides = item.slides_content as LunaSlide[];
   const images = Array.isArray(item.generated_images) ? item.generated_images : [];
+  const slug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "carrousel";
+
+  function downloadImage(src: string, index: number) {
+    const a = document.createElement("a");
+    a.href = src;
+    a.download = `${slug}-slide-${index + 1}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function downloadAll() {
+    images.forEach((src, i) => {
+      if (!src) return;
+      setTimeout(() => downloadImage(src, i), i * 200);
+    });
+  }
 
   async function renderImages() {
     if (rendering) return;
@@ -92,6 +109,14 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Génération en cours…
           </span>
         )}
+        {images.some(Boolean) && (
+          <button
+            onClick={downloadAll}
+            className="levo-pressable flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1.5 text-[12.5px] font-medium text-ink"
+          >
+            <Download className="h-3.5 w-3.5" /> Télécharger tout
+          </button>
+        )}
       </div>
 
       {error && <p className="text-[11.5px] font-medium text-danger">{error}</p>}
@@ -110,18 +135,26 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
               <p className="text-[12.5px] font-medium leading-snug text-ink">{slide.titre}</p>
               <p className="text-[11.5px] leading-relaxed text-muted">{slide.corps}</p>
               {images[i] && (
-                <button
-                  onClick={() => regenerateSlide(i)}
-                  disabled={regenerating !== null}
-                  className="levo-pressable flex items-center gap-1 pt-1 text-[11px] font-medium text-muted hover:text-ink disabled:opacity-50"
-                >
-                  {regenerating === i ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-3 w-3" />
-                  )}
-                  Régénérer cette slide
-                </button>
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    onClick={() => downloadImage(images[i]!, i)}
+                    className="levo-pressable flex items-center gap-1 text-[11px] font-medium text-muted hover:text-ink"
+                  >
+                    <Download className="h-3 w-3" /> Télécharger
+                  </button>
+                  <button
+                    onClick={() => regenerateSlide(i)}
+                    disabled={regenerating !== null}
+                    className="levo-pressable flex items-center gap-1 text-[11px] font-medium text-muted hover:text-ink disabled:opacity-50"
+                  >
+                    {regenerating === i ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3" />
+                    )}
+                    Régénérer
+                  </button>
+                </div>
               )}
             </div>
           </div>
