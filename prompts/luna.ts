@@ -37,14 +37,14 @@ vectoriel déterministe (satori/resvg), donc le texte est toujours parfaitement
 net et fidèle à la charte. Toutes les slides partagent : un fond uni ("creme",
 "vert" ou "navy"), un badge pill en haut à gauche (un label court), une
 flèche → bleue, un bandeau de signature "● Luma" / "Suite →" en bas. Le
-CONTENU du milieu dépend du "gabarit" choisi (3 possibles — VARIE-LES dans un
+CONTENU du milieu dépend du "gabarit" choisi (5 possibles — VARIE-LES dans un
 même carrousel, ne reste jamais sur un seul gabarit du début à la fin,
 c'est ce qui rend un post vivant plutôt que toujours le même bloc de texte
 centré avec plein de vide autour) :
 - "minimal" : titre + un court corps italique en dessous, éventuellement
   surligné ("surlignes") ou suivi d'une citation en capsule ("citation").
   Le gabarit le plus aéré — réserve-le aux slides qui doivent respirer
-  (accroche, transition, CTA final), pas à tout le carrousel.
+  (accroche, transition), pas à tout le carrousel.
   Champs utilisés : titre, corps, surlignes?, citation?.
 - "liste" : titre + jusqu'à 5 points courts (puces), plus dense, remplit
   bien plus l'espace — utilise-le pour les slides à contenu informatif
@@ -53,6 +53,15 @@ centré avec plein de vide autour) :
 - "chiffre" : une statistique géante en héros (ex. "3h", "90%", "+10/jour")
   + titre courte légende + corps en petite précision. Pour les slides de
   résultat/preuve. Champs utilisés : chiffre, titre, corps?.
+- "cta" : titre + court corps + un vrai bouton pill (texte + éventuellement
+  un emoji au début, ex. "📅 Réserver mon audit gratuit"). Pour LA slide de
+  clôture qui pousse à l'action — n'en mets qu'une par carrousel, en dernière
+  position. Champs utilisés : titre, corps?, bouton.
+- "comparaison" : titre + 2 colonnes côte à côte (ex. "Sans automatisation"
+  vs "Avec Luma", ou "Avant" / "Après") avec chacune 2-3 points courts. Pour
+  contraster clairement une situation avant/sans et après/avec. Champs
+  utilisés : titre, comparaison { gauche: {titre, points[]}, droite:
+  {titre, points[]} }.
 Ton travail est donc de choisir le TEXTE, le gabarit, et les paramètres de
 mise en page par slide — jamais de décrire un objet 3D, une photo ou un
 mockup, le rendu ne sait pas en générer.
@@ -162,25 +171,29 @@ ${transcript}
 """
 
 À partir de ce brief, produis le carrousel complet en JSON. Pour chaque
-slide, choisis "gabarit" ("minimal" | "liste" | "chiffre", EN VARIANT — pas
-le même sur tout le carrousel), "fond" (creme/vert/navy, en alternant),
-"style_titre" (sans/serif, en variant), un "label" court (1-3 mots), un
-"titre" court et percutant. Puis selon le gabarit : "corps" (minimal/chiffre,
-1-2 phrases), "points" (liste, 2-5 puces courtes), "chiffre" (chiffre, la
-statistique géante, ex. "3h" ou "90%"). "surlignes" (facultatif, minimal ou
-liste) : expressions EXACTES copiées depuis le texte à surligner, sur
-quelques slides seulement. "citation" (facultatif, minimal uniquement) : une
-courte phrase choc. Rappel : ces slides sont rendues par un moteur de mise en
-page déterministe, pas par un modèle d'image — ne décris jamais un visuel,
-choisis juste le texte, le gabarit et ces paramètres.
+slide, choisis "gabarit" ("minimal" | "liste" | "chiffre" | "cta" |
+"comparaison", EN VARIANT — pas le même sur tout le carrousel), "fond"
+(creme majoritaire, vert/navy en accents occasionnels), "style_titre"
+(sans/serif, en variant), un "label" court (1-3 mots), un "titre" court et
+percutant. Puis selon le gabarit : "corps" (minimal/chiffre/cta, 1-2
+phrases), "points" (liste, 2-5 puces courtes), "chiffre" (chiffre, la
+statistique géante, ex. "3h" ou "90%"), "bouton" (cta, le texte du bouton),
+"comparaison" (comparaison, un objet {gauche: {titre, points[2-3]}, droite:
+{titre, points[2-3]}}). "surlignes" (facultatif, minimal ou liste) :
+expressions EXACTES copiées depuis le texte à surligner, sur quelques slides
+seulement. "citation" (facultatif, minimal uniquement) : une courte phrase
+choc. Termine idéalement le carrousel par UNE slide "cta". Rappel : ces
+slides sont rendues par un moteur de mise en page déterministe, pas par un
+modèle d'image — ne décris jamais un visuel, choisis juste le texte, le
+gabarit et ces paramètres.
 
 Renvoie UNIQUEMENT ce JSON :
 {
   "theme": "cas_client" | "hook_probleme" | "educatif" | "solution" | "methode",
   "sujet": string,
-  "slides": [ { "titre": string, "gabarit": "minimal" | "liste" | "chiffre", "corps": string, "points": string[], "chiffre": string, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string } ],
+  "slides": [ { "titre": string, "gabarit": "minimal" | "liste" | "chiffre" | "cta" | "comparaison", "corps": string, "points": string[], "chiffre": string, "bouton": string, "comparaison": { "gauche": { "titre": string, "points": string[] }, "droite": { "titre": string, "points": string[] } } | null, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string } ],
   "caption": string,
   "hashtags": string[]
 }
-(laisse "corps"/"points"/"chiffre" vides — "" ou [] — quand le gabarit ne les utilise pas)`;
+(laisse les champs inutilisés par le gabarit vides — "", [], ou null pour "comparaison")`;
 }

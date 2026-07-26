@@ -12,13 +12,20 @@ import path from "node:path";
  * texte vectoriel, la mise en page est déterministe, donc toujours fidèle à
  * la charte Luma.
  *
- * 3 gabarits (pas qu'un seul skeleton recoloré) pour une vraie variété
+ * 5 gabarits (pas qu'un seul skeleton recoloré) pour une vraie variété
  * structurelle d'un post à l'autre, et pour éviter que chaque slide ait le
- * même excès d'espace vide : "minimal" (punchline, aéré, l'original),
- * "liste" (points denses type listicle), "chiffre" (stat géante en héros).
+ * même excès d'espace vide : "minimal" (punchline, aéré), "liste" (points
+ * denses type listicle), "chiffre" (stat géante en héros), "cta" (titre +
+ * bouton, pour une slide de clôture/action), "comparaison" (avant/après en
+ * 2 colonnes).
  */
 
-export type LunaGabarit = "minimal" | "liste" | "chiffre";
+export type LunaGabarit = "minimal" | "liste" | "chiffre" | "cta" | "comparaison";
+
+export interface LunaComparaisonColonne {
+  titre: string;
+  points: string[];
+}
 
 export interface LunaSlide {
   titre: string;
@@ -31,16 +38,20 @@ export interface LunaSlide {
   points?: string[];
   /** Gabarit "chiffre" : la statistique géante affichée en héros (ex. "3h", "90%"). */
   chiffre?: string;
+  /** Gabarit "cta" : le texte du bouton (ex. "Réserver mon audit gratuit"). */
+  bouton?: string;
+  /** Gabarit "comparaison" : 2 colonnes (sans/avec, avant/après...). */
+  comparaison?: { gauche: LunaComparaisonColonne; droite: LunaComparaisonColonne };
   /** Mots/phrases à surligner (bandeau noir), extraits exacts de `corps` (minimal) ou d'un point (liste). */
   surlignes?: string[];
   /** Citation courte affichée dans une capsule ronde après le corps (gabarit "minimal" uniquement). */
   citation?: string;
 }
 
-const PALETTE: Record<LunaSlide["fond"], { bg: string; text: string; sub: string }> = {
-  creme: { bg: "#F0EDE6", text: "#1A1A1A", sub: "#1A1A1A" },
-  vert: { bg: "#1A2E1A", text: "#FFFFFF", sub: "#F0EDE6" },
-  navy: { bg: "#0D1117", text: "#FFFFFF", sub: "#F0EDE6" },
+const PALETTE: Record<LunaSlide["fond"], { bg: string; text: string; sub: string; muted: string }> = {
+  creme: { bg: "#F0EDE6", text: "#1A1A1A", sub: "#1A1A1A", muted: "rgba(26,26,26,0.06)" },
+  vert: { bg: "#1A2E1A", text: "#FFFFFF", sub: "#F0EDE6", muted: "rgba(255,255,255,0.08)" },
+  navy: { bg: "#0D1117", text: "#FFFFFF", sub: "#F0EDE6", muted: "rgba(255,255,255,0.08)" },
 };
 
 const ACCENT = "#1A3BFF";
@@ -258,6 +269,88 @@ function ChiffreBody({ slide, palette }: { slide: LunaSlide; palette: (typeof PA
   );
 }
 
+function CtaBody({ slide, palette }: { slide: LunaSlide; palette: (typeof PALETTE)[LunaSlide["fond"]] }) {
+  const titleStyle =
+    slide.style_titre === "serif"
+      ? { fontFamily: "Playfair Display", fontStyle: "italic" as const, fontWeight: 500, lineHeight: 1.08 }
+      : { fontFamily: "Inter", fontWeight: 900, letterSpacing: "-3px", lineHeight: 0.94 };
+  const onDark = slide.fond !== "creme";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", padding: "0 64px", gap: "24px" }}>
+      <span style={{ ...titleStyle, fontSize: `${titleFontSize(slide.titre, slide.style_titre)}px`, color: palette.text }}>{slide.titre}</span>
+      {slide.corps && (
+        <span style={{ display: "flex", fontFamily: "Playfair Display", fontStyle: "italic", fontWeight: 400, fontSize: "27px", lineHeight: 1.4, color: palette.sub, opacity: 0.72 }}>
+          {truncate(slide.corps, 160)}
+        </span>
+      )}
+      {slide.bouton && (
+        <div style={{ display: "flex", marginTop: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: onDark ? "#FFFFFF" : "#1A1A1A",
+              borderRadius: "50px",
+              padding: "18px 32px",
+            }}
+          >
+            <span style={{ fontFamily: "Inter", fontWeight: 700, fontSize: "23px", color: onDark ? "#1A1A1A" : "#FFFFFF" }}>{slide.bouton}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComparaisonBody({ slide, palette }: { slide: LunaSlide; palette: (typeof PALETTE)[LunaSlide["fond"]] }) {
+  const comp = slide.comparaison;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", padding: "0 64px", gap: "28px" }}>
+      <span
+        style={{
+          fontFamily: "Inter",
+          fontWeight: 900,
+          letterSpacing: "-2px",
+          lineHeight: 0.98,
+          fontSize: `${titleFontSize(slide.titre, "sans") - 8}px`,
+          color: palette.text,
+        }}
+      >
+        {slide.titre}
+      </span>
+      {comp && (
+        <div style={{ display: "flex", gap: "18px" }}>
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, backgroundColor: palette.muted, borderRadius: "20px", padding: "24px" }}>
+            <span style={{ fontFamily: "Inter", fontWeight: 700, fontSize: "15px", letterSpacing: "0.04em", textTransform: "uppercase", color: palette.text, opacity: 0.55 }}>
+              {comp.gauche.titre}
+            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "16px" }}>
+              {comp.gauche.points.slice(0, 3).map((p, i) => (
+                <span key={i} style={{ display: "flex", fontFamily: "Inter", fontWeight: 500, fontSize: "17px", lineHeight: 1.35, color: palette.text, opacity: 0.6 }}>
+                  {truncate(p, 55)}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, border: `1.5px solid ${ACCENT}`, borderRadius: "20px", padding: "24px" }}>
+            <span style={{ fontFamily: "Inter", fontWeight: 700, fontSize: "15px", letterSpacing: "0.04em", textTransform: "uppercase", color: ACCENT }}>
+              {comp.droite.titre}
+            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "16px" }}>
+              {comp.droite.points.slice(0, 3).map((p, i) => (
+                <span key={i} style={{ display: "flex", fontFamily: "Inter", fontWeight: 600, fontSize: "17px", lineHeight: 1.35, color: palette.text }}>
+                  {truncate(p, 55)}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export async function renderSlideToPng(slide: LunaSlide, index: number, total: number): Promise<string> {
   const palette = PALETTE[slide.fond];
   const fonts = await loadFonts();
@@ -271,6 +364,10 @@ export async function renderSlideToPng(slide: LunaSlide, index: number, total: n
         <ListeBody slide={slide} palette={palette} />
       ) : gabarit === "chiffre" ? (
         <ChiffreBody slide={slide} palette={palette} />
+      ) : gabarit === "cta" ? (
+        <CtaBody slide={slide} palette={palette} />
+      ) : gabarit === "comparaison" ? (
+        <ComparaisonBody slide={slide} palette={palette} />
       ) : (
         <MinimalBody slide={slide} palette={palette} />
       )}
