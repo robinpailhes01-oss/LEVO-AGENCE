@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // @resvg/resvg-js embarque un binaire natif (.node) — à laisser tel quel,
+  // pas à faire passer par webpack (rendu des visuels LUNA).
   experimental: {
+    serverComponentsExternalPackages: ["@resvg/resvg-js"],
     serverActions: {
       bodySizeLimit: "2mb",
     },

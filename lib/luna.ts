@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { callClaudeChat, callClaudeJson, type ChatTurn } from "@/lib/claude";
-import { generateSlideImage } from "@/lib/openai";
+import { renderSlideToPng, type LunaSlide } from "@/lib/luna-render";
 import { lunaSystemPrompt, lunaGeneratePrompt, type LunaCarouselResult } from "@/prompts/luna";
 import type { ContentItem, LunaReference } from "@/lib/db";
 
@@ -135,7 +135,7 @@ export async function generateCarousel(contentId: string): Promise<ContentItem> 
       theme: result.theme,
       hook_slide1: result.slides[0]?.titre ?? null,
       slides_content: result.slides,
-      image_prompts: result.slides.map((s) => s.prompt_image),
+      image_prompts: null,
       caption: result.caption,
       hashtags: result.hashtags,
       status: "drafted",
@@ -147,33 +147,31 @@ export async function generateCarousel(contentId: string): Promise<ContentItem> 
   return updated as ContentItem;
 }
 
-/** Génère les visuels de chaque slide (gpt-image-1). Best-effort : garde les réussites même si une échoue. */
+/** Rend les visuels de chaque slide (satori/resvg, rendu texte déterministe). Best-effort : garde les réussites même si une échoue. */
 export async function renderCarouselImages(contentId: string): Promise<{ item: ContentItem; failed: number[] }> {
   const db = supabaseAdmin();
   const { data } = await db.from("content_calendar").select("*").eq("id", contentId).maybeSingle();
   if (!data) throw new Error("Post introuvable.");
   const row = data as ContentItem;
-  const prompts = Array.isArray(row.image_prompts) ? (row.image_prompts as string[]) : [];
-  if (prompts.length === 0) throw new Error("Aucun prompt image — génère d'abord le carrousel.");
+  const slides = Array.isArray(row.slides_content) ? (row.slides_content as LunaSlide[]) : [];
+  if (slides.length === 0) throw new Error("Aucun carrousel à rendre — génère d'abord le carrousel.");
 
   await db.from("content_calendar").update({ status: "generating" }).eq("id", contentId);
 
-  const images: (string | null)[] = new Array(prompts.length).fill(null);
+  const images: (string | null)[] = new Array(slides.length).fill(null);
   const failed: number[] = [];
-  const CONCURRENCY = 3;
-  for (let i = 0; i < prompts.length; i += CONCURRENCY) {
-    const batch = prompts.slice(i, i + CONCURRENCY);
-    const results = await Promise.allSettled(batch.map((p) => generateSlideImage(p)));
-    results.forEach((r, j) => {
-      const idx = i + j;
-      if (r.status === "fulfilled") images[idx] = r.value;
-      else failed.push(idx);
-    });
+  for (let i = 0; i < slides.length; i++) {
+    try {
+      images[i] = await renderSlideToPng(slides[i]!, i, slides.length);
+    } catch (err) {
+      console.error("[luna:render-slide]", i, err);
+      failed.push(i);
+    }
   }
 
   const { data: updated, error } = await db
     .from("content_calendar")
-    .update({ generated_images: images, status: failed.length === prompts.length ? "drafted" : "ready" })
+    .update({ generated_images: images, status: failed.length === slides.length ? "drafted" : "ready" })
     .eq("id", contentId)
     .select("*")
     .single();
@@ -187,12 +185,12 @@ export async function regenerateSlideImage(contentId: string, slideIndex: number
   const { data } = await db.from("content_calendar").select("*").eq("id", contentId).maybeSingle();
   if (!data) throw new Error("Post introuvable.");
   const row = data as ContentItem;
-  const prompts = Array.isArray(row.image_prompts) ? (row.image_prompts as string[]) : [];
-  const prompt = prompts[slideIndex];
-  if (!prompt) throw new Error("Slide introuvable.");
+  const slides = Array.isArray(row.slides_content) ? (row.slides_content as LunaSlide[]) : [];
+  const slide = slides[slideIndex];
+  if (!slide) throw new Error("Slide introuvable.");
 
-  const image = await generateSlideImage(prompt);
-  const images = Array.isArray(row.generated_images) ? [...row.generated_images] : new Array(prompts.length).fill(null);
+  const image = await renderSlideToPng(slide, slideIndex, slides.length);
+  const images = Array.isArray(row.generated_images) ? [...row.generated_images] : new Array(slides.length).fill(null);
   images[slideIndex] = image;
 
   const { data: updated, error } = await db
