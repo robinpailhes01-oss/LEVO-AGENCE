@@ -7,6 +7,22 @@ import type { ContentItem, LunaReference } from "@/lib/db";
 
 const REFERENCE_LIMIT = 6;
 
+/**
+ * Le prompt demande "creme dominant, vert/navy en accents occasionnels",
+ * mais un LLM ne suit pas une consigne de dosage à 100% du temps (déjà vu
+ * sur HERMES) — on force la règle en code plutôt que de compter dessus :
+ * au plus 1 slide sur 3 en fond sombre, le reste repasse en "creme".
+ */
+function enforceCremeDominance(slides: LunaSlide[]): LunaSlide[] {
+  const maxDark = Math.max(1, Math.ceil(slides.length / 3));
+  let darkSeen = 0;
+  return slides.map((s) => {
+    if (s.fond === "creme") return s;
+    darkSeen++;
+    return darkSeen <= maxDark ? s : { ...s, fond: "creme" };
+  });
+}
+
 async function getLearnings(): Promise<string | null> {
   const { data } = await supabaseAdmin().from("settings").select("value").eq("key", "luna_learnings").maybeSingle();
   const value = (data as { value: unknown } | null)?.value;
@@ -127,14 +143,15 @@ export async function generateCarousel(contentId: string): Promise<ContentItem> 
     maxTokens: 4000,
     temperature: 0.6,
   });
+  const slides = enforceCremeDominance(result.slides);
 
   const { data: updated, error } = await db
     .from("content_calendar")
     .update({
       title: result.sujet,
       theme: result.theme,
-      hook_slide1: result.slides[0]?.titre ?? null,
-      slides_content: result.slides,
+      hook_slide1: slides[0]?.titre ?? null,
+      slides_content: slides,
       image_prompts: null,
       caption: result.caption,
       hashtags: result.hashtags,
