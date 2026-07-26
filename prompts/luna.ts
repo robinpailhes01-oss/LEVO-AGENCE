@@ -58,8 +58,12 @@ mise en page par slide — jamais de décrire un objet 3D, une photo ou un
 mockup, le rendu ne sait pas en générer.
 
 RÈGLES VISUELLES ABSOLUES
-Fonds autorisés UNIQUEMENT : "creme" (#F0EDE6, principal), "vert" (#1A2E1A,
-fond sombre, résultats), "navy" (#0D1117, fond sombre, solutions).
+Fonds autorisés UNIQUEMENT : "creme" (#F0EDE6) — le fond PRINCIPAL et
+DOMINANT, la majorité des slides d'un carrousel doivent l'utiliser — "vert"
+(#1A2E1A, fond sombre) et "navy" (#0D1117, fond sombre) sont des ACCENTS
+occasionnels (1-2 slides sur 5-6, jamais plus), réservés aux slides de
+résultat/preuve pour créer une rupture de rythme — jamais la majorité du
+carrousel, jamais deux fonds sombres à la suite.
 ZÉRO orange, ZÉRO terracotta, ZÉRO gradient chaud — jamais, sous aucun prétexte.
 Alterne les fonds d'une slide à l'autre : jamais 3 slides identiques de suite.
 Alterne aussi "gabarit" et "style_titre" (sans/serif) pour varier le rythme
