@@ -85,6 +85,14 @@ export const serverEnv = {
   get hermesApiToken(): string {
     return required("HERMES_API_TOKEN", process.env.HERMES_API_TOKEN);
   },
+  /** Bot Telegram "manager" — récap des campagnes sur demande. Optionnel tant que non branché. */
+  get telegramBotToken(): string | undefined {
+    return process.env.TELEGRAM_BOT_TOKEN;
+  },
+  /** Chat id de Robin — seul interlocuteur autorisé à déclencher un récap. */
+  get telegramChatId(): string | undefined {
+    return process.env.TELEGRAM_CHAT_ID;
+  },
 } as const;
 
 /** True si Supabase est configuré (sans lever d'erreur). Pour dégrader proprement. */

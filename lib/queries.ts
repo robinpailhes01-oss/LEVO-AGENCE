@@ -342,6 +342,44 @@ export function getLunaReferences(): Promise<LunaReference[]> {
   }, []);
 }
 
+export interface CampaignStats {
+  campaignName: string;
+  channel: "instantly" | "resend";
+  sent: number;
+  opened: number;
+  clicked: number;
+  replied: number;
+  bounced: number;
+}
+
+/** Stats de la campagne la plus récente — pour le récap Telegram sur demande. */
+export function getLatestCampaignStats(): Promise<CampaignStats | null> {
+  return safe(async () => {
+    const db = supabaseAdmin();
+    const { data: campaign, error } = await db
+      .from("campaigns")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (!campaign) return null;
+    const c = campaign as { id: string; name: string; channel: "instantly" | "resend" };
+
+    const { data: events, error: eventsError } = await db
+      .from("email_events")
+      .select("type")
+      .eq("campaign_id", c.id);
+    if (eventsError) throw eventsError;
+
+    const counts = { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 };
+    for (const e of (events ?? []) as { type: string }[]) {
+      if (e.type in counts) counts[e.type as keyof typeof counts]++;
+    }
+    return { campaignName: c.name, channel: c.channel, ...counts };
+  }, null);
+}
+
 /** Mémoire LUNA — retours texte accumulés (injectés dans le prompt de chaque génération). */
 export function getLunaLearnings(): Promise<string> {
   return safe(async () => {

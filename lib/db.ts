@@ -122,6 +122,7 @@ export interface Campaign {
   inbox_email: string | null;
   daily_limit: number;
   status: "draft" | "active" | "paused";
+  channel: "instantly" | "resend";
 }
 
 export type EmailEventType =
