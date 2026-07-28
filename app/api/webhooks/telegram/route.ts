@@ -1,6 +1,6 @@
 import { serverEnv } from "@/lib/env";
 import { sendTelegramMessage } from "@/lib/telegram";
-import { getLatestCampaignStats } from "@/lib/queries";
+import { getAllCampaignStats, type CampaignStats } from "@/lib/queries";
 
 export const runtime = "nodejs";
 
@@ -26,17 +26,19 @@ function secretValid(req: Request): boolean {
   return diff === 0;
 }
 
-function formatStats(stats: Awaited<ReturnType<typeof getLatestCampaignStats>>): string {
-  if (!stats) return "Aucune campagne trouvée pour l'instant.";
-  const channelLabel = stats.channel === "resend" ? "Resend" : "Instantly";
+function formatOne(c: CampaignStats): string {
+  const channelLabel = c.channel === "resend" ? "Resend" : "Instantly";
+  const label = c.nicheName ? `${c.nicheName} — ${c.campaignName}` : c.campaignName;
   return [
-    `<b>${stats.campaignName}</b> (${channelLabel})`,
-    `Envoyés : ${stats.sent}`,
-    `Ouverts : ${stats.opened}`,
-    `Cliqués : ${stats.clicked}`,
-    `Répondus : ${stats.replied}`,
-    `Bounces : ${stats.bounced}`,
+    `<b>${label}</b> (${channelLabel})`,
+    `Envoyés : ${c.sent} · Ouverts : ${c.opened} · Cliqués : ${c.clicked} · Répondus : ${c.replied} · Bounces : ${c.bounced}`,
   ].join("\n");
+}
+
+/** Une ligne par niche/campagne — chacune a sa propre file d'envoi Resend ou Instantly. */
+function formatStats(list: CampaignStats[]): string {
+  if (list.length === 0) return "Aucune campagne trouvée pour l'instant.";
+  return list.map(formatOne).join("\n\n");
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -59,7 +61,7 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const stats = await getLatestCampaignStats();
+    const stats = await getAllCampaignStats();
     await sendTelegramMessage(formatStats(stats));
   } catch (err) {
     console.error("[webhook:telegram]", err);

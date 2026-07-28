@@ -344,6 +344,7 @@ export function getLunaReferences(): Promise<LunaReference[]> {
 
 export interface CampaignStats {
   campaignName: string;
+  nicheName: string | null;
   channel: "instantly" | "resend";
   sent: number;
   opened: number;
@@ -352,32 +353,44 @@ export interface CampaignStats {
   bounced: number;
 }
 
-/** Stats de la campagne la plus récente — pour le récap Telegram sur demande. */
-export function getLatestCampaignStats(): Promise<CampaignStats | null> {
+/** Stats de toutes les campagnes, la plus récente d'abord — une ligne par niche pour le récap Telegram. */
+export function getAllCampaignStats(): Promise<CampaignStats[]> {
   return safe(async () => {
     const db = supabaseAdmin();
-    const { data: campaign, error } = await db
+    const { data: campaigns, error } = await db
       .from("campaigns")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .select("*, niches(name)")
+      .order("created_at", { ascending: false });
     if (error) throw error;
-    if (!campaign) return null;
-    const c = campaign as { id: string; name: string; channel: "instantly" | "resend" };
+    const list = (campaigns ?? []) as {
+      id: string;
+      name: string;
+      channel: "instantly" | "resend";
+      niches: { name: string } | null;
+    }[];
+    if (list.length === 0) return [];
 
     const { data: events, error: eventsError } = await db
       .from("email_events")
-      .select("type")
-      .eq("campaign_id", c.id);
+      .select("type, campaign_id")
+      .in("campaign_id", list.map((c) => c.id));
     if (eventsError) throw eventsError;
 
-    const counts = { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 };
-    for (const e of (events ?? []) as { type: string }[]) {
-      if (e.type in counts) counts[e.type as keyof typeof counts]++;
+    type Counts = { sent: number; opened: number; clicked: number; replied: number; bounced: number };
+    const byCampaign = new Map<string, Counts>();
+    for (const c of list) byCampaign.set(c.id, { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 });
+    for (const e of (events ?? []) as { type: string; campaign_id: string | null }[]) {
+      const counts = e.campaign_id ? byCampaign.get(e.campaign_id) : undefined;
+      if (counts && e.type in counts) counts[e.type as keyof Counts]++;
     }
-    return { campaignName: c.name, channel: c.channel, ...counts };
-  }, null);
+
+    return list.map((c) => ({
+      campaignName: c.name,
+      nicheName: c.niches?.name ?? null,
+      channel: c.channel,
+      ...(byCampaign.get(c.id) ?? { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 }),
+    }));
+  }, []);
 }
 
 /** Mémoire LUNA — retours texte accumulés (injectés dans le prompt de chaque génération). */
