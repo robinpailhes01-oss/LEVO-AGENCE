@@ -35,14 +35,19 @@ Toute évolution de fond se fait là d'abord, les autres skills en découlent.
   Yacht est la **preuve**, pas le marché.
 - Offre : **installation 100 % offerte, facturation à l'usage** avec marge sur
   l'usage.
+- Stack : **Baileys + Railway** → aucun coût par message, seul coût variable =
+  les appels Claude. Marge > 90 % (`OFFER_DESIGN.md` §B3).
+- Canal d'envoi : **Resend uniquement**, Instantly abandonné (~150 €/mois).
+  Domaine dédié pour le froid, 50 envois/jour maximum (`FUNNEL.md` §5).
 
 **À trancher / à mesurer**
 - Le nom de l'offre (`OFFER_DESIGN.md` §B1).
-- La grille tarifaire exacte, après vérification des coûts réels
-  (`OFFER_DESIGN.md` §B3).
+- La grille tarifaire exacte (`OFFER_DESIGN.md` §B3).
 - Le tarif catalogue de la clause de reprise d'installation (§B4).
-- Instantly est-il toujours actif ? Il détermine le canal du froid
-  (`FUNNEL.md` §5).
+- **Numéro dédié ou ligne principale du client ?** — risque de suspension
+  Baileys (`OFFER_DESIGN.md` §B3, point 3).
+- **Comment on récupère les réponses** maintenant qu'Instantly part
+  (`FUNNEL.md` §5.2).
 
 ---
 

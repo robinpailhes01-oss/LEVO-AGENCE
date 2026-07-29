@@ -21,7 +21,8 @@
 - **Offre : installation 100 % offerte, facturation uniquement à l'usage** (à la conversation traitée), avec marge sur l'usage. Robin a tranché en connaissance des risques (saisonnalité, pas de plancher) — les garde-fous retenus sont le filtre en amont, la contrepartie non monétaire obligatoire (nom + chiffres + témoignage) et une clause de reprise d'installation avant 3 mois.
 - **Pivot de valeur : du CA récupéré, pas du temps gagné.** « Le premier qui répond prend la réservation. »
 - **Le premier contact ne demande jamais un rendez-vous** : il propose de tester une démo WhatsApp en 30 secondes.
-- **Délivrabilité : le froid ne part jamais du domaine qui porte le transactionnel client.** Resend reste transactionnel ; si le froid passe par Resend, c'est sur un domaine dédié, emails vérifiés, warm-up progressif, 50/j maximum.
+- **Stack technique de l'agent : Baileys + Railway.** Donc zéro coût par message (pas d'API WhatsApp Business officielle), seul coût variable = les appels Claude → marge > 90 %. ⚠️ Baileys n'est pas officiel : risque de suspension du numéro, à trancher (numéro dédié plutôt que la ligne principale du client).
+- **Canal d'envoi : Resend uniquement. Instantly est abandonné** (~150 €/mois pour un volume inutilisé). Le froid part d'un **domaine dédié**, jamais de celui qui porte le transactionnel client ; emails vérifiés, warm-up progressif, **50 envois/jour maximum**. Trou fonctionnel à combler : Resend ne détecte pas les réponses (Instantly le faisait) → Resend Inbound à brancher, ou marquage manuel au début.
 - **Calendrier : on n'envoie pas de froid en juin-août.** Meilleure fenêtre = septembre (bilan de saison à chaud), puis janvier-mars.
 
 Restent à trancher : nom de l'offre, grille tarifaire définitive (après vérification des coûts réels WhatsApp/Meta), tarif catalogue de la clause de reprise, et si l'abonnement Instantly est toujours actif.

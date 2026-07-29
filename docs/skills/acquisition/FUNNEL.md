@@ -117,21 +117,26 @@ domaine en une semaine, et un domaine grillé ne se répare pas.
 
 ### 5.1 Séparation des domaines — non négociable
 
-| Usage | Domaine | Outil |
+**Décision (juillet 2026) : Instantly est abandonné** (~150 €/mois pour un
+volume que nous n'utilisons pas). **Tout passe par Resend**, sur deux domaines
+séparés.
+
+| Usage | Domaine | Compte |
 | --- | --- | --- |
-| Prospection à froid | **domaine dédié**, distinct | Instantly (ou Resend, cf. 5.2) |
+| Prospection à froid | **domaine dédié**, distinct | Resend |
 | Transactionnel client (diagnostic, récap, factures, rapports HERMES) | domaine principal | Resend |
 
 **Jamais de cold email depuis le domaine qui porte les emails clients.** La
 raison n'est pas théorique : si la réputation du domaine tombe, ce sont les
 devis et les factures qui n'arrivent plus.
 
-### 5.2 Si on envoie le froid par Resend
+### 5.2 Les 5 conditions du froid par Resend — non négociables
 
 Resend est un service **transactionnel** : sa politique d'usage suppose des
 destinataires qui ont consenti, et le risque réel n'est pas le volume — c'est
 la **suspension du compte**, qui emporterait aussi tout notre transactionnel.
-À 50 envois/jour c'est tenable, à quatre conditions strictes :
+Puisqu'on n'a plus de solution de repli, ces conditions ne sont plus des
+précautions mais des règles :
 
 1. **Domaine d'envoi dédié**, SPF + DKIM + DMARC configurés dessus.
 2. **Emails vérifiés avant envoi** (les adresses scrapées Google Maps ont un
@@ -140,12 +145,25 @@ la **suspension du compte**, qui emporterait aussi tout notre transactionnel.
    → 50/j ensuite. Jamais de saut.
 4. **Désinscription en un clic**, traitée immédiatement, plus la phrase de
    sortie en ligne 5 (`COPYWRITING.md` §3).
+5. **Plafond de 50 envois/jour**, étalés sur la journée. À 50/j, les 300-400
+   leads de la première liste sont couverts en une dizaine de jours ouvrés —
+   c'est largement suffisant, monter plus haut n'apporte rien et met le compte
+   en risque.
 
-**Recommandation :** garder Instantly pour le froid s'il est actif (c'est son
-métier, il gère la boîte de réception et détecte les réponses, ce que Resend ne
-fait pas) et Resend pour le transactionnel. Le webhook Resend en place
-(`app/api/webhooks/resend/route.ts`) ne remonte que `sent/opened/clicked/
-bounced/complained` — les réponses restent à marquer à la main.
+**Ce qu'on perd en quittant Instantly, et comment on compense :**
+
+| Instantly faisait | Sans lui |
+| --- | --- |
+| détection automatique des réponses | ⚠️ **à construire** : les réponses arrivent dans une boîte mail, il faut les faire remonter dans `replies` (voir ci-dessous) |
+| séquences et relances automatiques | à piloter depuis le dashboard, ou à la main au début (`FUNNEL.md` §9 — de toute façon on n'automatise pas avant que le message ait fait ses preuves) |
+| warm-up géré | à faire à la main (condition 3) |
+| rotation d'inbox | inutile à 50/j |
+
+Le webhook Resend en place (`app/api/webhooks/resend/route.ts`) remonte
+`sent/opened/clicked/bounced/complained` — **mais pas les réponses**. Il faut
+donc soit brancher la réception d'emails (Resend Inbound sur le domaine de
+prospection), soit marquer « répondu » à la main dans le dashboard au début.
+C'est le seul vrai trou fonctionnel laissé par le départ d'Instantly.
 
 ### 5.3 Cadre légal (France, B2B)
 

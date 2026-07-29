@@ -149,17 +149,29 @@ son activité monte, ce qui rend la saison haute indolore.
 qu'un palier à seuil, et ça évite l'effet de bord où franchir un seuil fait
 baisser la facture.*
 
-**Chiffres à valider avant le premier devis :**
-- Coût réel d'une conversation = tokens du modèle + messagerie + hébergement.
-  ⚠️ Meta a fait évoluer sa facturation WhatsApp (par message, avec les
-  conversations de **service initiées par le client** dans une logique
-  différente des messages marketing) : **revérifier les tarifs en vigueur avant
-  de figer la grille**, c'est ce qui détermine la marge réelle.
-- Objectif de marge brute sur l'usage : **≥ 80 %**. En dessous, la grille est
-  fausse — on remonte les paliers, on ne rogne pas.
-- Point mort d'une installation : combien de conversations faut-il pour couvrir
-  le temps de setup ? À calculer une fois le premier client installé, et à
-  utiliser comme seuil de qualification (§B4).
+**Structure de coût réelle (stack Baileys + Railway, décidée juillet 2026) :**
+- **Pas de facturation Meta.** On passe par Baileys (WhatsApp non officiel) sur
+  Railway : aucun coût par message, aucune API WhatsApp Business à payer.
+- **Le seul coût variable = les appels Claude.** Ordre de grandeur : quelques
+  centimes par conversation. Railway ajoute un coût fixe faible, mutualisé
+  entre tous les clients.
+- **Marge brute sur l'usage : > 90 %**, quasi indépendante du volume.
+
+**Trois conséquences directes sur la stratégie :**
+1. **Le prix se fixe sur la valeur, pas sur le coût.** 0,90 € la conversation
+   n'est pas une marge à justifier : c'est un prix face à une réservation à
+   plusieurs centaines d'euros. On ne baisse pas parce que « ça ne nous coûte
+   rien ».
+2. **L'absence de plancher devient bien moins risquée.** Un client qui n'utilise
+   pas ne nous coûte presque rien — le seul investissement à risque est le temps
+   d'installation de Robin. Le filtre en amont (§B4) reste donc le vrai garde-fou.
+3. ⚠️ **Risque à assumer consciemment :** Baileys n'est pas officiel. Le numéro
+   d'un client peut être suspendu par WhatsApp — et pour un établissement, c'est
+   son numéro d'accueil. Décision à prendre en connaissance de cause : soit on
+   utilise un **numéro dédié** à l'agent (pas la ligne principale de
+   l'établissement), soit on prévoit la bascule vers l'API officielle le jour
+   où un client devient trop gros pour ce risque. À trancher avant la première
+   installation.
 
 *[À VALIDER par Robin — grille indicative, pas encore testée sur un devis réel]*
 
