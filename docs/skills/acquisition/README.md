@@ -38,16 +38,24 @@ Toute évolution de fond se fait là d'abord, les autres skills en découlent.
 - Stack : **Baileys + Railway** → aucun coût par message, seul coût variable =
   les appels Claude. Marge > 90 % (`OFFER_DESIGN.md` §B3).
 - Canal d'envoi : **Resend uniquement**, Instantly abandonné (~150 €/mois).
-  Domaine dédié pour le froid, 50 envois/jour maximum (`FUNNEL.md` §5).
+  **Deux domaines dédiés déjà en place**, 50 envois/jour maximum (`FUNNEL.md` §5).
+- **Pas de numéro de démo générique.** Chaque démo est construite au cas par
+  cas, après un échange — l'email 1 demande juste une réponse, jamais un test
+  ni un rendez-vous (`FUNNEL.md` §1, `COPYWRITING.md` §3).
+- **Réponses → notification Telegram immédiate** sur un canal dédié (à créer),
+  via Resend Inbound (`FUNNEL.md` §5.2).
+- **Prix non figé et non public** : chaque établissement a son propre tarif et
+  son propre tableau de bord d'usage (`OFFER_DESIGN.md` §B3).
+- Liste de leads (300-400, Gard/Hérault) : **déjà sourcée.**
+- Page de vente : **déjà créée**, en cours d'amélioration par Robin.
 
 **À trancher / à mesurer**
 - Le nom de l'offre (`OFFER_DESIGN.md` §B1).
-- La grille tarifaire exacte (`OFFER_DESIGN.md` §B3).
 - Le tarif catalogue de la clause de reprise d'installation (§B4).
 - **Numéro dédié ou ligne principale du client ?** — risque de suspension
   Baileys (`OFFER_DESIGN.md` §B3, point 3).
-- **Comment on récupère les réponses** maintenant qu'Instantly part
-  (`FUNNEL.md` §5.2).
+- Construction technique de la notif Telegram (Resend Inbound + nouveau bot).
+- Le tableau de bord client (usage + prix) — n'existe pas encore.
 
 ---
 

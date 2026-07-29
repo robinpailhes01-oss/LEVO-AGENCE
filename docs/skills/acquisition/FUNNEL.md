@@ -6,18 +6,18 @@
 
 ## 1. LE PRINCIPE DIRECTEUR
 
-**Le produit est démontrable en 30 secondes. Tout le tunnel doit servir ça.**
+**Pas de numéro de démo générique.** Robin construit une démo personnalisée
+**au cas par cas, pour chaque établissement**, et il y a toujours un échange
+avant. Donc le tunnel n'est pas « tester une démo tout de suite » — c'est :
 
-Un agent WhatsApp se **teste** — c'est un avantage rare, que la plupart des
-services B2B n'ont pas. Donc :
+- l'email froid ne vend pas le produit, il déclenche **une réponse** ;
+- la réponse ouvre **une conversation courte** (par email ou WhatsApp) ;
+- Robin construit ensuite **une démo personnalisée pour cet établissement** ;
+- c'est cette démo, montrée en rendez-vous ou envoyée après, qui vend.
 
-- l'email froid ne vend pas le produit, il vend **la démo** ;
-- la page de vente ne vend pas le produit, elle **envoie vers la démo** ;
-- la démo ne vend pas le produit, elle **provoque la conversation** ;
-- c'est la **conversation** qui vend.
-
-Corollaire : **on ne demande jamais un rendez-vous au premier contact.** Le
-rendez-vous est ce qu'on obtient *après* que le prospect a testé, pas avant.
+Corollaire inchangé : **on ne demande jamais un rendez-vous au premier
+contact.** L'email 1 demande une réponse, pas un créneau — voir
+`COPYWRITING.md` §3.
 
 ---
 
@@ -30,19 +30,21 @@ rendez-vous est ce qu'on obtient *après* que le prospect a testé, pas avant.
         ↓
 ③ SCORING             ORION enrichit + score (0-100), Robin valide ≥ 60
         ↓
-④ EMAIL 1             structure 5 lignes → CTA = tester la démo
+④ EMAIL 1             structure 5 lignes → CTA = obtenir une réponse
         ↓
-⑤ DÉMO TESTÉE         le prospect écrit au numéro WhatsApp de démo
+⑤ RÉPONSE             notif Telegram immédiate → Robin prend le relais
         ↓
-⑥ CONVERSATION        réponse humaine → ORION s'arrête, Robin prend
+⑥ ÉCHANGE COURT       Robin cerne le besoin (par écrit ou par téléphone)
         ↓
-⑦ RENDEZ-VOUS 20 min  découverte + chiffrage + démo personnalisée
+⑦ DÉMO PERSONNALISÉE  construite au cas par cas pour CET établissement
         ↓
-⑧ RÉCAP + CONTREPARTIE
+⑧ RENDEZ-VOUS 20 min  démo montrée + chiffrage + prix (`SALES_CALL.md`)
         ↓
-⑨ INSTALLATION        offerte
+⑨ RÉCAP + CONTREPARTIE
         ↓
-⑩ USAGE               facturation mensuelle, upsells après résultat
+⑩ INSTALLATION        offerte
+        ↓
+⑪ USAGE               facturation mensuelle, upsells après résultat
 ```
 
 ### Correspondance avec les `stage` déjà en base
@@ -55,11 +57,11 @@ Aucune migration nécessaire — on réutilise les valeurs existantes de
 | ①②③ | `new` |
 | ④ envoyé | `contacted` |
 | ouverture détectée | `opened` |
-| ⑥ réponse humaine | `replied` |
-| ⑤ démo testée / diagnostic reçu | `audit_received` |
-| ⑦ démo personnalisée envoyée | `loom_sent` |
+| ⑤ réponse reçue | `replied` |
+| ⑥ échange en cours / infos récupérées | `audit_received` |
+| ⑦ démo personnalisée envoyée ou présentée | `loom_sent` |
 | relances en cours | `follow_up` |
-| ⑨ signé | `won` |
+| ⑩ signé | `won` |
 | disqualifié ou refus | `lost` |
 
 ---
@@ -71,24 +73,23 @@ Aucune migration nécessaire — on réutilise les valeurs existantes de
 | ① | 300-400 établissements Gard/Hérault | requêtes Google Maps (`NICHE_HEBERGEMENT.md`) | ORION | 300+ fiches |
 | ② | ne jamais envoyer à une adresse morte | vérification d'emails | ORION | bounce < 2 % |
 | ③ | ne travailler que le haut de la liste | grille de scoring | ORION → Robin | ≥ 60 % de la liste au-dessus de 60 |
-| ④ | faire tester la démo | numéro de démo + gabarit 5 lignes | ORION → Robin valide | réponse 4-10 % |
-| ⑤ | prouver en 30 s | **numéro WhatsApp de démo** | Robin (à construire) | 30 % des répondeurs testent |
-| ⑥ | ouvrir une vraie conversation | inbox dashboard + notification Telegram | ORION alerte, Robin répond | réponse < 2 h en journée |
-| ⑦ | qu'il chiffre lui-même sa perte | `SALES_CALL.md` | Robin | 50 % des conversations → RDV |
-| ⑧ | verrouiller le périmètre | récap 1 page | ORION rédige | envoyé dans l'heure |
-| ⑨ | mise en service rapide | checklist d'onboarding | Robin | < 7 jours après le oui |
-| ⑩ | facturer et documenter | CRM + relevé de conversations | Robin | 1er chiffre client publiable |
+| ④ | obtenir une réponse | gabarit 5 lignes, CTA = répondre | ORION → Robin valide | réponse 4-10 % |
+| ⑤ | être notifié tout de suite | **email reçu → notif Telegram** (à construire) | ORION alerte, Robin répond | notif < 2 min après réception |
+| ⑥ | cerner le besoin réel | échange court (email ou tel) | Robin | < 2 h de délai de réponse en journée |
+| ⑦ | démo qui prouve qu'on a écouté | démo construite au cas par cas | Robin | 60 % des échanges → démo |
+| ⑧ | qu'il chiffre lui-même sa perte | `SALES_CALL.md`, démo à l'appui | Robin | 50 % des démos → RDV |
+| ⑨ | verrouiller le périmètre | récap 1 page | ORION rédige | envoyé dans l'heure |
+| ⑩ | mise en service rapide | checklist d'onboarding | Robin | < 7 jours après le oui |
+| ⑪ | facturer et documenter | CRM + relevé de conversations | Robin | 1er chiffre client publiable |
 
 ### L'actif manquant, et c'est le plus important
 
-**Le numéro WhatsApp de démo n'existe pas encore.** Tant qu'il n'existe pas, le
-tunnel n'a pas de cœur et l'email froid retombe sur « prendre rendez-vous », ce
-qui divise les réponses. C'est la première brique à construire — avant la page
-de vente, avant la séquence complète.
-
-En attendant, on peut faire tourner l'étape ④ avec le **lien de diagnostic**
-déjà en place dans le code (`/api/webhooks/audit`, stage `audit_received`), qui
-joue le même rôle en moins fort.
+**La détection automatique des réponses n'existe pas encore.** Sans Instantly,
+un email de réponse arrive dans une boîte mail normale — personne n'est
+prévenu. Il faut : Resend Inbound (ou équivalent) sur le domaine de
+prospection → parsing → **notification Telegram immédiate** sur un canal
+dédié. C'est la première brique à construire : chaque heure de retard sur une
+réponse est une réponse qui refroidit. Détail dans `FUNNEL.md` §5.2.
 
 ---
 
@@ -154,16 +155,36 @@ précautions mais des règles :
 
 | Instantly faisait | Sans lui |
 | --- | --- |
-| détection automatique des réponses | ⚠️ **à construire** : les réponses arrivent dans une boîte mail, il faut les faire remonter dans `replies` (voir ci-dessous) |
+| détection automatique des réponses | remplacé par le plan Telegram ci-dessous |
 | séquences et relances automatiques | à piloter depuis le dashboard, ou à la main au début (`FUNNEL.md` §9 — de toute façon on n'automatise pas avant que le message ait fait ses preuves) |
 | warm-up géré | à faire à la main (condition 3) |
 | rotation d'inbox | inutile à 50/j |
 
 Le webhook Resend en place (`app/api/webhooks/resend/route.ts`) remonte
-`sent/opened/clicked/bounced/complained` — **mais pas les réponses**. Il faut
-donc soit brancher la réception d'emails (Resend Inbound sur le domaine de
-prospection), soit marquer « répondu » à la main dans le dashboard au début.
-C'est le seul vrai trou fonctionnel laissé par le départ d'Instantly.
+`sent/opened/clicked/bounced/complained` — **mais pas les réponses**, ce n'est
+pas son rôle.
+
+**Le plan retenu : email reçu → notification Telegram immédiate.**
+
+```
+prospect répond → email arrive sur le domaine de prospection
+        ↓
+Resend Inbound (ou routage équivalent) capture le mail entrant
+        ↓
+webhook parse l'expéditeur, retrouve le lead, marque stage=replied
+        ↓
+notification poussée sur un canal Telegram dédié (nouveau bot/chat_id,
+distinct du bot "manager" existant en §7 de la config Telegram)
+        ↓
+Robin voit la notif, répond depuis sa boîte mail habituelle
+```
+
+Réutilise `lib/telegram.ts` (`sendTelegramMessage`) déjà en place — seul le
+déclenchement change : push automatique à la réception, pas seulement
+réponse à la demande comme le bot "manager" actuel
+(`app/api/webhooks/telegram/route.ts`). **C'est la première brique à
+construire** (§9) : nécessite de créer le canal/bot Telegram dédié et de
+configurer Resend Inbound sur le domaine de prospection.
 
 ### 5.3 Cadre légal (France, B2B)
 
@@ -195,8 +216,8 @@ Cold email B2B français sur liste scrapée et vérifiée :
 | Bounce | > 3 % | < 2 % | < 1 % |
 | Réponse (toutes) | < 3 % | 4-7 % | > 10 % |
 | Réponse positive | < 1 % | 2-3 % | > 5 % |
-| Démo testée / répondeurs | < 15 % | 30 % | > 50 % |
-| RDV / conversation | < 30 % | 50 % | > 70 % |
+| Démo construite / échanges | < 30 % | 60 % | > 80 % |
+| RDV / démo montrée | < 30 % | 50 % | > 70 % |
 | Signature / RDV | < 15 % | 25 % | > 40 % |
 
 ⚠️ **Le taux d'ouverture n'est pas une métrique de décision.** Les protections
@@ -246,11 +267,12 @@ notifie. Il ne négocie pas, ne promet rien, n'improvise aucun prix.
 
 Par rendement décroissant :
 
-1. **Numéro WhatsApp de démo** — sans lui, le tunnel n'a pas de cœur.
-2. **Liste 300-400 établissements Gard/Hérault, vérifiée et scorée.**
-3. **Email 1 + les 3 relances**, validés par Robin.
-4. **Page de vente courte** (`COPYWRITING.md` §8) — son seul job est d'envoyer
-   vers la démo.
+1. **Réception des réponses → notif Telegram immédiate.** Sans Instantly, rien
+   ne prévient plus quand un prospect répond — c'est le trou le plus critique.
+2. **Liste 300-400 établissements Gard/Hérault** — déjà faite, à vérifier avant
+   envoi.
+3. **Email 1 + les 3 relances**, validés par Robin (à refaire).
+4. **Page de vente** — déjà créée, en cours d'amélioration par Robin.
 5. **Suivi dans le dashboard** : les stages existent déjà, il manque la lecture
    du tunnel étape par étape.
 6. **Automatisation des relances** — en dernier, jamais avant que le message ait

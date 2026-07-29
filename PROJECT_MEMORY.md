@@ -2,7 +2,7 @@
 
 *Claude Code lit ce fichier au début de chaque session et le met à jour à la fin.*
 
-*Dernière mise à jour : 2026-07-29 — session « skills acquisition ORION ».*
+*Dernière mise à jour : 2026-07-29 — session « skills acquisition ORION » (2 passes).*
 
 ---
 
@@ -20,12 +20,16 @@
 - **Niche : établissements d'accueil touristique du Sud à fort volume de demandes entrantes** (Gard / Hérault d'abord) — campings, hôtels indépendants, résidences, villages vacances, complexes. ⚠️ **Pas** les loueurs de bateaux : Harmonie Yacht est la **preuve**, pas le marché. L'ancienne cible « artisans Occitanie » est abandonnée.
 - **Offre : installation 100 % offerte, facturation uniquement à l'usage** (à la conversation traitée), avec marge sur l'usage. Robin a tranché en connaissance des risques (saisonnalité, pas de plancher) — les garde-fous retenus sont le filtre en amont, la contrepartie non monétaire obligatoire (nom + chiffres + témoignage) et une clause de reprise d'installation avant 3 mois.
 - **Pivot de valeur : du CA récupéré, pas du temps gagné.** « Le premier qui répond prend la réservation. »
-- **Le premier contact ne demande jamais un rendez-vous** : il propose de tester une démo WhatsApp en 30 secondes.
+- **Le premier contact ne demande jamais un rendez-vous ni un test de démo.** Il n'y a **aucun numéro de démo générique** — Robin en construit une au cas par cas, pour chaque établissement, après un échange. L'email 1 demande juste une réponse.
 - **Stack technique de l'agent : Baileys + Railway.** Donc zéro coût par message (pas d'API WhatsApp Business officielle), seul coût variable = les appels Claude → marge > 90 %. ⚠️ Baileys n'est pas officiel : risque de suspension du numéro, à trancher (numéro dédié plutôt que la ligne principale du client).
-- **Canal d'envoi : Resend uniquement. Instantly est abandonné** (~150 €/mois pour un volume inutilisé). Le froid part d'un **domaine dédié**, jamais de celui qui porte le transactionnel client ; emails vérifiés, warm-up progressif, **50 envois/jour maximum**. Trou fonctionnel à combler : Resend ne détecte pas les réponses (Instantly le faisait) → Resend Inbound à brancher, ou marquage manuel au début.
+- **Canal d'envoi : Resend uniquement. Instantly est abandonné** (~150 €/mois pour un volume inutilisé). **Deux domaines dédiés déjà en place** pour le froid, distincts du transactionnel client ; emails vérifiés, warm-up progressif, **50 envois/jour maximum**.
+- **Réponses par email → notification Telegram immédiate**, sur un nouveau canal dédié (à créer), via Resend Inbound. Réutilise `lib/telegram.ts` (`sendTelegramMessage`), mais en push automatique — pas comme le bot "manager" actuel qui répond seulement à la demande.
 - **Calendrier : on n'envoie pas de froid en juin-août.** Meilleure fenêtre = septembre (bilan de saison à chaud), puis janvier-mars.
+- **Prix non figé, non public.** Chaque établissement a son propre tarif, décidé au cas par cas, avec marge cachée derrière (coût réel quasi nul, cf. Baileys). Robin veut que chaque client ait **son propre tableau de bord d'usage** — nouvelle brique produit, pas encore construite.
+- Liste de leads (300-400, Gard/Hérault) : **déjà sourcée** par Robin (pas besoin de relancer le scraping dans l'immédiat).
+- Page de vente : **déjà créée**, Robin l'améliore ; à revoir ensemble plutôt qu'à réécrire.
 
-Restent à trancher : nom de l'offre, grille tarifaire définitive (après vérification des coûts réels WhatsApp/Meta), tarif catalogue de la clause de reprise, et si l'abonnement Instantly est toujours actif.
+Restent à trancher : nom de l'offre, tarif catalogue de la clause de reprise, numéro dédié vs ligne principale pour Baileys, construction technique de la notif Telegram (Resend Inbound + nouveau bot), et le tableau de bord client.
 
 ---
 
@@ -69,13 +73,12 @@ Restent à trancher : nom de l'offre, grille tarifaire définitive (après véri
 ---
 
 ## À faire prochaine session — acquisition (par ordre de rendement)
-1. **Numéro WhatsApp de démo** — l'actif central du tunnel. Sans lui l'email 1 retombe sur « prendre rendez-vous » et les réponses s'effondrent.
-2. **Ajouter `reviews` + `rating` au scraping** (`lib/outscraper.ts`) : le nombre d'avis Google est le proxy du volume de demandes, donc le premier critère du scoring — il n'est pas récupéré aujourd'hui.
-3. **Sourcer et vérifier la liste 300-400 établissements Gard/Hérault** (requêtes prêtes dans `docs/skills/acquisition/NICHE_HEBERGEMENT.md` §7).
-4. **Rédiger et faire valider l'email 1 + les 3 relances.**
-5. **Page de vente courte** dont le seul job est d'envoyer vers la démo (structure dans `COPYWRITING.md` §8).
-6. **Lecture du tunnel étape par étape dans le dashboard** (les `stage` existent déjà, la correspondance est dans `FUNNEL.md` §2).
-7. Envoi à partir de **début septembre** — pas avant.
+1. **Notif Telegram sur réponse reçue** — trou le plus critique laissé par le départ d'Instantly. Nécessite : Resend Inbound sur le domaine de prospection + nouveau bot/canal Telegram (chat_id à créer) + webhook de parsing (détail dans `FUNNEL.md` §5.2).
+2. **Rédiger et faire valider l'email 1 + les 3 relances** (CTA = obtenir une réponse, pas tester une démo).
+3. Revoir la page de vente existante de Robin à la lumière de `COPYWRITING.md` §8.
+4. **Ajouter `reviews` + `rating` au scraping** (`lib/outscraper.ts`) si la liste déjà sourcée ne les a pas — proxy du volume de demandes, premier critère du scoring.
+5. **Lecture du tunnel étape par étape dans le dashboard** (les `stage` existent déjà, la correspondance est dans `FUNNEL.md` §2).
+6. Envoi à partir de **début septembre** — pas avant.
 
 ## À faire prochaine session — dette
 - **Réécrire `CLAUDE.md`** : il décrit une version « 100% visuelle, zéro API, données mockées » qui n'existe plus. Il induit en erreur toute nouvelle session.

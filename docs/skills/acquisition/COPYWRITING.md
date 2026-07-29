@@ -52,7 +52,7 @@ Un seul lien par email. Pas d'image, pas de logo, pas de signature graphique
 | notre solution | ce que j'ai monté chez moi |
 | optimiser votre taux de conversion | répondre avant le camping d'à côté |
 | un CRM | un endroit où toutes les demandes arrivent, quelle que soit la source |
-| prendre rendez-vous | l'essayer, ça prend trente secondes |
+| prendre rendez-vous | répondez-moi et je vous montre ce que ça donnerait chez vous |
 
 ---
 
@@ -71,8 +71,10 @@ ligne, jamais plus de 90 mots.
 3. LA PREUVE     Robin, sa boîte, ce qu'il a monté. Une phrase.
                  Jamais deux, jamais de chiffre inventé.
 
-4. L'INVITATION  Tester la démo. Pas un rendez-vous. Pas un appel.
-                 « Écrivez à ce numéro comme si vous cherchiez une chambre. »
+4. L'INVITATION  Obtenir une réponse. Pas un rendez-vous, pas de démo à ce
+                 stade — il n'y a pas de numéro générique, Robin construit
+                 une démo personnalisée après avoir échangé. On demande
+                 juste un mot : « ça vous parle ? » / « je vous montre ? »
 
 5. LA SORTIE     Une phrase qui permet d'arrêter en un mot.
 ```
@@ -94,16 +96,16 @@ et qu'une réponse — même « non » — améliore la réputation du domaine.
 > Je gère une société de location de bateaux à Carnon ; j'ai fini par monter un
 > numéro WhatsApp qui répond à ma place, jour et nuit, et qui range toutes les
 > demandes au même endroit.
-> Si vous voulez voir ce que ça donne, écrivez à ce numéro comme si vous
-> cherchiez un emplacement pour le 15 août : [numéro]. Ça répond tout de suite.
+> Si ça vous parle, répondez-moi en deux mots et je vous montre à quoi ça
+> ressemblerait chez vous, avec vos tarifs et vos disponibilités.
 > Si ce n'est pas votre sujet, répondez-moi « non » et je ne vous relance pas.
 >
 > Robin — Luma, Montpellier
 
 Pourquoi ça marche : la ligne 1 est invérifiable par un outil générique (il faut
 avoir regardé la fiche), la ligne 2 décrit une scène qu'il a vécue la semaine
-dernière, la ligne 3 est une position de pair, la ligne 4 ne demande aucun
-engagement, la ligne 5 désarme.
+dernière, la ligne 3 est une position de pair, la ligne 4 ne demande qu'un mot
+en retour (pas de clic, pas d'outil à ouvrir), la ligne 5 désarme.
 
 ---
 
@@ -188,7 +190,7 @@ apporte **un élément nouveau**.
 
 | # | Délai | Angle | Longueur |
 | --- | --- | --- | --- |
-| R1 | J+3 | La démo, autrement : une capture de ce que l'agent a répondu à un vrai message | 3 lignes |
+| R1 | J+3 | Une capture d'écran du bot WhatsApp de Robin (Harmonie Yacht) en action — la preuve, pas une démo pour eux | 3 lignes |
 | R2 | J+8 | Le moment, précisé pour son type d'établissement (« un dimanche de juillet à 20h ») | 3 lignes |
 | R3 | J+15 | La sortie franche : « je clos, dites-moi juste si le sujet existe chez vous » | 2 lignes |
 
@@ -203,8 +205,13 @@ régulièrement plus de réponses que la première — ne jamais la supprimer.
 
 ## 8. LA PAGE DE VENTE
 
-**Son job unique : faire tester la démo.** Pas expliquer, pas rassurer, pas
-convaincre. Une page longue est une page qui a peur.
+> Robin a déjà une page de vente en place, en cours d'amélioration. Ce qui
+> suit sert de **checklist de relecture**, pas de plan à imposer — les deux
+> blocs qui ne collent plus (2 et 6) sont corrigés pour tenir compte de
+> l'absence de démo générique et du prix non fixé.
+
+**Son job unique : obtenir une réponse ou un échange.** Pas expliquer, pas
+rassurer, pas convaincre. Une page longue est une page qui a peur.
 
 ```
 BLOC 1 — TITRE
@@ -212,10 +219,12 @@ BLOC 1 — TITRE
   « Vos demandes reçoivent une réponse. Même le dimanche à 22h. »
   Sous-titre : à qui c'est destiné, en une ligne.
 
-BLOC 2 — LA DÉMO, TOUT DE SUITE
-  Le numéro WhatsApp, gros, cliquable, avec une consigne :
-  « Écrivez-lui comme si vous cherchiez une chambre pour ce week-end. »
-  → C'est le seul élément vraiment important de la page.
+BLOC 2 — LA PREUVE, TOUT DE SUITE
+  Pas de numéro de démo générique (il n'y en a pas — chaque démo est
+  construite au cas par cas, après un échange). À la place : une capture ou
+  courte vidéo du bot réel de Robin (Harmonie Yacht) en action, et un bouton
+  d'action clair : « Écrivez-moi, je vous montre ce que ça donnerait chez
+  vous » → mailto: ou WhatsApp perso de Robin.
 
 BLOC 3 — LE MOMENT (3 scènes, pas un paragraphe)
   · samedi 17h, deux demandes pendant le service
@@ -230,12 +239,13 @@ BLOC 5 — CE QUE ÇA FAIT (3 points maximum)
   répond · qualifie · range tout au même endroit
 
 BLOC 6 — LE PRIX
-  « Installation offerte. Vous payez à la conversation traitée.
-   Rien ne tourne, rien à payer. »
-  Assumé, visible. Cacher le prix fait fuir un patron d'établissement.
+  Pas de grille chiffrée publique (le prix se fixe par établissement,
+  voir `OFFER_DESIGN.md`). On affiche le principe, pas un tarif :
+  « Installation offerte. Vous payez à l'usage réel — rien ne tourne, rien
+   à payer. » Le chiffre se donne en échange, jamais sur la page.
 
 BLOC 7 — L'ACTION
-  Deux options, pas trois : tester la démo · 20 minutes avec Robin.
+  Une seule option, sans ambiguïté : écrire à Robin.
 ```
 
 **Interdits sur la page :** carrousel de logos clients (il n'y en a pas),

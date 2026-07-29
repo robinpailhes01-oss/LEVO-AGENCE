@@ -1,7 +1,6 @@
 import { mcpRoute, str, num, bool, arr, obj, requireStr } from "@/lib/mcp";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { callClaudeJson } from "@/lib/claude";
-import { serverEnv } from "@/lib/env";
 import {
   ORION_ENRICH_SYSTEM,
   ORION_EMAIL1_SYSTEM,
@@ -221,24 +220,23 @@ const { GET, POST } = mcpRoute("leads", [
   },
   {
     name: "generate_email1",
-    description: "ORION rédige l'Email 1 (structure 5 lignes, CTA = tester la démo) + l'accroche perso pour un lead.",
-    input: { lead_id: "string", audit_link: "string?" },
+    description: "ORION rédige l'Email 1 (structure 5 lignes, CTA = obtenir une réponse) + l'accroche perso pour un lead.",
+    input: { lead_id: "string" },
     run: async (input) => {
       const db = supabaseAdmin();
       const { data: row } = await db.from("leads").select("*").eq("id", requireStr(input, "lead_id")).maybeSingle();
       if (!row) throw new Error("Lead introuvable.");
       const lead = row as Lead;
-      const auditLink = str(input, "audit_link") ?? `${serverEnv.auditSiteUrl}/audit?lead=${lead.id}`;
       const result = await callClaudeJson<{ subject: string; body: string; icebreaker: string }>({
         system: ORION_EMAIL1_SYSTEM,
-        prompt: email1Prompt(lead, auditLink),
+        prompt: email1Prompt(lead),
         maxTokens: 900,
         temperature: 0.8,
       });
       await db.from("leads").update({
         enrichment_data: { ...(lead.enrichment_data ?? {}), icebreaker: result.icebreaker, email1_subject: result.subject },
       }).eq("id", lead.id);
-      return { ...result, audit_link: auditLink };
+      return result;
     },
   },
   {

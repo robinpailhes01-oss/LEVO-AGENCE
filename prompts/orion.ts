@@ -164,10 +164,12 @@ au total.
    premier qui répond.
 3. LA PREUVE — Robin, sa société de location de bateaux à Carnon, ce qu'il a
    monté pour lui. UNE phrase, un seul chiffre de la liste blanche au maximum.
-4. L'INVITATION — proposer de TESTER : « écrivez à ce numéro comme si vous
-   cherchiez un emplacement pour le 15 août ». Jamais un rendez-vous, jamais un
-   appel, aucun engagement. Le lien ou le numéro fourni va ici, et c'est le seul
-   lien de l'email.
+4. L'INVITATION — demander une RÉPONSE, rien de plus. Il n'y a pas de numéro
+   de démo générique : chaque démo est construite par Robin au cas par cas,
+   après un échange. On demande juste un mot en retour, du type « ça vous
+   parle ? » ou « répondez-moi et je vous montre ce que ça donnerait chez
+   vous, avec vos tarifs ». Jamais de rendez-vous, jamais d'appel, aucun lien
+   à ce stade.
 5. LA SORTIE — une phrase qui permet d'arrêter en un mot, du type « si ce n'est
    pas votre sujet, répondez-moi non et je ne vous relance pas ».
 
@@ -198,23 +200,20 @@ Renvoie un JSON : { "niche": string, "score": number (0-100), "pain_points": str
 ligne 1, ancrée sur un fait observable de CET établissement.`;
 }
 
-export function email1Prompt(
-  lead: {
-    full_name: string | null;
-    first_name: string | null;
-    company: string | null;
-    sector: string | null;
-    pain_points: string[] | null;
-  },
-  ctaLink: string,
-): string {
+export function email1Prompt(lead: {
+  full_name: string | null;
+  first_name: string | null;
+  company: string | null;
+  sector: string | null;
+  pain_points: string[] | null;
+}): string {
   return `Établissement :
 - Prénom du contact : ${lead.first_name ?? lead.full_name ?? "—"}
 - Établissement : ${lead.company ?? "—"}
 - Type : ${lead.sector ?? "établissement d'accueil"}
 - Pain points connus : ${lead.pain_points?.join(" | ") ?? "—"}
 
-Lien ou numéro à insérer en ligne 4 (le seul lien de l'email) : ${ctaLink}
+Il n'y a AUCUN lien ni numéro à insérer : la ligne 4 demande juste une réponse.
 
 Renvoie un JSON :
 { "subject": string, "body": string, "icebreaker": string }

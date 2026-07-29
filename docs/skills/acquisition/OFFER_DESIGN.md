@@ -130,14 +130,24 @@ FACTURATION .................. à la conversation traitée, mensuel, à terme é
   · Une conversation traitée = un échange avec un client qui aboutit à une
     demande qualifiée ou à une réponse complète.
   · Rien ne tourne = rien à payer. Pas d'abonnement, pas d'engagement de volume.
+  · Chaque établissement a SON tableau de bord (usage + prix qui lui est
+    propre) — ⚠️ pas encore construit, voir PROJECT_MEMORY.md.
 ```
 
 ## B3. La grille
 
-Dégressive par paliers mensuels : le client voit son prix unitaire baisser quand
-son activité monte, ce qui rend la saison haute indolore.
+**Le prix n'est pas figé ni public — décision de Robin (juillet 2026).**
+Chaque établissement aura son propre tableau de bord affichant son usage réel
+(conversations traitées) et son propre prix, fixé au cas par cas. Le coût
+réel de Robin (Baileys + Railway + Claude, voir plus bas) ne dépend presque
+pas du volume et reste très inférieur à ce qui est facturé — c'est la marge.
+Rien ne l'empêche de proposer un prix différent d'un établissement à l'autre.
 
-| Conversations traitées / mois | Prix unitaire | Facture type |
+La grille ci-dessous n'est donc plus un tarif catalogue à publier : c'est un
+**point de départ pour la négociation**, dégressif par paliers pour rester
+indolore en saison haute.
+
+| Conversations traitées / mois | Prix unitaire (repère) | Facture type |
 | --- | --- | --- |
 | 1 → 300 | **0,90 €** | 270 € à 300 conv. |
 | 301 → 1 000 | **0,70 €** | 760 € à 1 000 conv. |
