@@ -38,12 +38,22 @@ interface LunaChatProps {
   activeId: string | null;
   activeItem: ContentItem | null;
   loadingItem: boolean;
+  itemError: string | null;
   onActiveIdChange: (id: string | null) => void;
   onItemMutated: () => void;
+  onRetryLoad: () => void;
 }
 
 /** Chat LUNA — brief conversationnel persisté en base (texte + images de référence), puis génération du carrousel. */
-export function LunaChat({ activeId, activeItem, loadingItem, onActiveIdChange, onItemMutated }: LunaChatProps) {
+export function LunaChat({
+  activeId,
+  activeItem,
+  loadingItem,
+  itemError,
+  onActiveIdChange,
+  onItemMutated,
+  onRetryLoad,
+}: LunaChatProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -180,6 +190,18 @@ export function LunaChat({ activeId, activeItem, loadingItem, onActiveIdChange, 
             <PenSquare className="h-3.5 w-3.5" /> Nouvelle conversation
           </button>
         </div>
+
+        {itemError && (
+          <div className="flex items-center justify-between gap-2 border-b border-line/60 bg-danger/5 px-4 py-2">
+            <span className="text-[11.5px] font-medium text-danger">{itemError}</span>
+            <button
+              onClick={onRetryLoad}
+              className="levo-pressable shrink-0 rounded-lg px-2 py-1 text-[11px] font-medium text-danger underline"
+            >
+              Réessayer
+            </button>
+          </div>
+        )}
 
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
           {messages.length === 0 ? (

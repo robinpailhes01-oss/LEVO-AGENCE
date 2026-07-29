@@ -46,19 +46,23 @@ export function LunaWorkspace({ content, children }: { content: ContentSummary[]
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<ContentItem | null>(null);
   const [loadingItem, setLoadingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
 
   const loadActiveItem = useCallback(async (id: string) => {
     setLoadingItem(true);
+    setItemError(null);
     try {
       const res = await fetch(`/api/luna/${id}`);
       if (!res.ok) {
         setActiveItem(null);
+        setItemError(res.status === 401 ? "Session expirée — recharge la page." : `Impossible de charger ce post (erreur ${res.status}).`);
         return;
       }
       const data = (await res.json()) as { item?: ContentItem };
       setActiveItem(data.item ?? null);
     } catch {
       setActiveItem(null);
+      setItemError("Impossible de charger ce post — vérifie ta connexion et réessaie.");
     } finally {
       setLoadingItem(false);
     }
@@ -102,8 +106,10 @@ export function LunaWorkspace({ content, children }: { content: ContentSummary[]
         activeId={activeId}
         activeItem={activeItem}
         loadingItem={loadingItem}
+        itemError={itemError}
         onActiveIdChange={handleActiveIdChange}
         onItemMutated={handleItemMutated}
+        onRetryLoad={() => activeId && loadActiveItem(activeId)}
       />
       {children}
       <ContentKanban content={content} activeId={activeId} onSelect={handleActiveIdChange} />
