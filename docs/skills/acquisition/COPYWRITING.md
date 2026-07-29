@@ -107,6 +107,40 @@ avoir regardé la fiche), la ligne 2 décrit une scène qu'il a vécue la semain
 dernière, la ligne 3 est une position de pair, la ligne 4 ne demande qu'un mot
 en retour (pas de clic, pas d'outil à ouvrir), la ligne 5 désarme.
 
+### Exemple travaillé — hôtel indépendant
+
+> **Objet :** votre formulaire de contact
+>
+> J'ai regardé votre site : le formulaire de contact dit « réponse sous 24h »,
+> et vos derniers avis parlent bien de l'accueil.
+> Le souci, c'est que la demande qui arrive un vendredi soir n'attend pas
+> jusqu'au lundi — elle réserve ailleurs, souvent chez le concurrent qui a
+> répondu le premier.
+> Je gère une société de location de bateaux à Carnon ; toutes mes demandes
+> clients arrivent maintenant au même endroit et reçoivent une réponse, y
+> compris le week-end.
+> Répondez-moi et je vous montre ce que ça donnerait pour votre hôtel, avec vos
+> tarifs et vos disponibilités.
+> Si ce n'est pas le sujet, un « non » suffit et je ne reviens pas.
+>
+> Robin — Luma, Montpellier
+
+### Exemple travaillé — résidence de tourisme / village vacances
+
+> **Objet :** vos demandes du dimanche
+>
+> Entre la piscine, le resto et les animations, vous devez recevoir des
+> questions sur plusieurs sujets à la fois — souvent sur plusieurs canaux.
+> Le dimanche soir, quand une famille demande une dispo pour les vacances de
+> la Toussaint, si personne ne répond avant le lundi, elle a déjà écrit à deux
+> autres résidences.
+> Je gère une société de location de bateaux à Carnon ; j'ai fini par tout
+> centraliser au même endroit, avec une réponse même la nuit.
+> Répondez-moi en deux mots, je vous montre ce que ça donnerait chez vous.
+> Si ce n'est pas votre sujet, répondez « non » et j'arrête là.
+>
+> Robin — Luma, Montpellier
+
 ---
 
 ## 4. LES OBJETS D'EMAIL
@@ -270,7 +304,35 @@ Pas de lien dans le premier message (ça tue la délivrabilité sur Instagram).
 
 ---
 
-## 10. CONTRÔLE QUALITÉ — LES 6 QUESTIONS AVANT ENVOI
+## 10. RÉPONDRE QUAND ILS RÉPONDENT — À L'USAGE DE ROBIN
+
+> Dès qu'un humain répond, ORION se tait (`ACQUISITION_CORE.md` §1) : il ne
+> rédige pas cette réponse, il notifie. Ce qui suit est un aide-mémoire pour
+> **Robin**, pas une tâche d'ORION — même logique que `SALES_CALL.md`.
+
+C'est l'étape ⑥ du tunnel (`FUNNEL.md` §2), celle qui manquait : entre la
+réponse au mail et le rendez-vous, il y a un échange court, écrit. Son objectif
+n'est **pas** de vendre — juste d'obtenir soit les infos pour construire une
+démo (tarifs, période, canaux utilisés), soit un créneau de 10-20 minutes.
+
+**Règle commune à toutes les réponses :** une question à la fois, jamais un
+pavé. Un message de 3 lignes obtient plus qu'un message de 10.
+
+| Ils répondent | On répond |
+| --- | --- |
+| « Oui, ça m'intéresse, dites-m'en plus » | 2-3 questions ciblées (tarifs, période d'ouverture, canaux utilisés) **ou** direct : « Le plus simple, dix minutes au téléphone cette semaine, ça vous va ? » |
+| « C'est combien ? » | Jamais de prix à l'écrit à ce stade — le prix se chiffre avec eux (`SALES_CALL.md` §5). « Ça dépend de votre volume, je préfère qu'on en parle dix minutes plutôt que de vous donner un chiffre au hasard. » |
+| « On a déjà [logiciel/chat] » | Objection courte, référencer `NICHE_HEBERGEMENT.md` §10 (angle : direct vs OTA, ou ce que l'outil actuel ne couvre pas). |
+| « Pas intéressé » / « non » | Accuser réception, remercier, ne pas insister. `stage = lost`, raison notée. Aucune relance. |
+| Silence après une première réponse tiède | Une seule relance, sous 4-5 jours, apportant un élément nouveau (pas « je reviens vers vous »). |
+
+**But final de l'échange :** soit les données suffisent pour construire la
+démo directement, soit on obtient un appel où la démo se montre en direct
+(`SALES_CALL.md` §6).
+
+---
+
+## 11. CONTRÔLE QUALITÉ — LES 6 QUESTIONS AVANT ENVOI
 
 Un texte qui échoue à une seule question part à la réécriture.
 
@@ -286,7 +348,7 @@ Un texte qui échoue à une seule question part à la réécriture.
 
 ---
 
-## 11. CE QU'ORION FAIT DE SES ÉCHECS
+## 12. CE QU'ORION FAIT DE SES ÉCHECS
 
 Chaque campagne produit de la matière :
 - les objets qui n'ont rien donné → sortent de la banque §4 ;

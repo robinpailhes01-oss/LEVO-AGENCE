@@ -209,7 +209,7 @@ Dans l'heure (ORION rédige, Robin envoie) :
   perte bien notée vaut plus que dix leads en plus.
 - Si le refus est un « pas maintenant » saisonnier → réactivation à la fenêtre
   d'avant-saison suivante, avec le contexte conservé.
-- Les mots exacts de son objection remontent dans `COPYWRITING.md` §11.
+- Les mots exacts de son objection remontent dans `COPYWRITING.md` §12.
 
 ---
 

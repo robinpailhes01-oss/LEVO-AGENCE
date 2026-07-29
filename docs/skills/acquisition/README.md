@@ -16,7 +16,7 @@ d'agents tant qu'un rôle ne devient pas trop gros pour un seul.
 | --- | --- | --- | --- |
 | 1 | **ACQUISITION_CORE.md** | Positionnement, ICP, pivot de valeur, règles non négociables | **toujours** |
 | 2 | **OFFER_DESIGN.md** | Méthode de construction d'offre + l'offre Luma, grille, protections | offre, prix, devis, objections prix |
-| 3 | **COPYWRITING.md** | Charte d'écriture, gabarit 5 lignes, banques d'objets/accroches/preuves, mots interdits | tout ce qui s'écrit |
+| 3 | **COPYWRITING.md** | Charte d'écriture, gabarit 5 lignes, banques d'objets/accroches/preuves, mots interdits, playbook de réponse pour Robin | tout ce qui s'écrit |
 | 4 | **SALES_CALL.md** | Découverte, chiffrage, annonce du prix, closing, suite | préparation et suivi de rendez-vous |
 | 5 | **FUNNEL.md** | Tunnel complet, métriques, délivrabilité, règles d'arrêt | pilotage de campagne |
 | 6 | **NICHE_HEBERGEMENT.md** | Playbook niche : tiers, décideur, pains, vocabulaire, calendrier, requêtes Google Maps, scoring | sourcing, scoring, personnalisation |
@@ -77,7 +77,7 @@ Toute évolution de fond se fait là d'abord, les autres skills en découlent.
 Après **chaque** campagne, dans cet ordre :
 1. Les objections reçues mot pour mot → `OFFER_DESIGN.md` §B7 et
    `NICHE_HEBERGEMENT.md` §10.
-2. Les phrases des prospects décrivant leur douleur → `COPYWRITING.md` §11.
+2. Les phrases des prospects décrivant leur douleur → `COPYWRITING.md` §12.
 3. Les objets et accroches morts → sortis des banques.
 4. Les chiffres réels obtenus chez un client → liste blanche
    `COPYWRITING.md` §6. **C'est la mise à jour qui change le plus les taux.**
