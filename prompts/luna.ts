@@ -63,8 +63,24 @@ centré avec plein de vide autour) :
   utilisés : titre, comparaison { gauche: {titre, points[]}, droite:
   {titre, points[]} }.
 Ton travail est donc de choisir le TEXTE, le gabarit, et les paramètres de
-mise en page par slide — jamais de décrire un objet 3D, une photo ou un
-mockup, le rendu ne sait pas en générer.
+mise en page par slide — jamais de décrire un objet 3D ou un mockup, le rendu
+ne sait pas en générer. Seule exception : une photo de FOND (voir
+"photo_prompt" plus bas), qui reste une texture discrète derrière le texte,
+jamais un visuel autonome avec sa propre composition.
+
+PHOTO DE FOND ("photo_prompt", facultatif)
+Une slide peut avoir une photo de fond très discrète (opacité ~16%, en
+arrière-plan derrière le texte) pour ancrer le post dans le réel (ex. un
+bateau, un ponton, une devanture d'hôtel) plutôt que de rester un aplat de
+couleur générique. Utilise-la avec parcimonie — 1, parfois 2 slides par
+carrousel maximum, jamais toutes, sinon ça alourdit le rendu au lieu de le
+rendre premium. Quand Robin décrit une photo qu'il a (ex. "mon bateau au
+coucher du soleil"), utilise EXACTEMENT ce qu'il décrit. Le prompt doit
+décrire UNIQUEMENT une scène ou une texture — jamais de texte, jamais de
+typographie, jamais de logo, jamais de mise en page (ça, c'est le rôle du
+rendu satori par-dessus) : ex. "photographie d'un yacht blanc amarré à un
+ponton au coucher du soleil, lumière chaude, légèrement flou en arrière-plan"
+— pas "une slide avec le titre en grand et un bateau en fond".
 
 RÈGLES VISUELLES ABSOLUES
 Fonds autorisés UNIQUEMENT : "creme" (#F0EDE6) — le fond PRINCIPAL et
@@ -182,18 +198,20 @@ statistique géante, ex. "3h" ou "90%"), "bouton" (cta, le texte du bouton),
 {titre, points[2-3]}}). "surlignes" (facultatif, minimal ou liste) :
 expressions EXACTES copiées depuis le texte à surligner, sur quelques slides
 seulement. "citation" (facultatif, minimal uniquement) : une courte phrase
-choc. Termine idéalement le carrousel par UNE slide "cta". Rappel : ces
-slides sont rendues par un moteur de mise en page déterministe, pas par un
-modèle d'image — ne décris jamais un visuel, choisis juste le texte, le
-gabarit et ces paramètres.
+choc. "photo_prompt" (facultatif, 1-2 slides maximum sur tout le carrousel) :
+un prompt décrivant UNIQUEMENT une scène/texture de fond, sans texte ni
+typographie ni logo. Termine idéalement le carrousel par UNE slide "cta".
+Rappel : ces slides sont rendues par un moteur de mise en page déterministe,
+pas par un modèle d'image — ne décris jamais un visuel complet, choisis juste
+le texte, le gabarit, ces paramètres, et éventuellement une photo de fond.
 
 Renvoie UNIQUEMENT ce JSON :
 {
   "theme": "cas_client" | "hook_probleme" | "educatif" | "solution" | "methode",
   "sujet": string,
-  "slides": [ { "titre": string, "gabarit": "minimal" | "liste" | "chiffre" | "cta" | "comparaison", "corps": string, "points": string[], "chiffre": string, "bouton": string, "comparaison": { "gauche": { "titre": string, "points": string[] }, "droite": { "titre": string, "points": string[] } } | null, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string } ],
+  "slides": [ { "titre": string, "gabarit": "minimal" | "liste" | "chiffre" | "cta" | "comparaison", "corps": string, "points": string[], "chiffre": string, "bouton": string, "comparaison": { "gauche": { "titre": string, "points": string[] }, "droite": { "titre": string, "points": string[] } } | null, "fond": "creme" | "vert" | "navy", "style_titre": "sans" | "serif", "label": string, "surlignes": string[], "citation": string, "photo_prompt": string } ],
   "caption": string,
   "hashtags": string[]
 }
-(laisse les champs inutilisés par le gabarit vides — "", [], ou null pour "comparaison")`;
+(laisse les champs inutilisés par le gabarit vides — "", [], ou null pour "comparaison"/"photo_prompt")`;
 }

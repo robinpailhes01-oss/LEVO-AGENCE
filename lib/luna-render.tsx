@@ -46,6 +46,14 @@ export interface LunaSlide {
   surlignes?: string[];
   /** Citation courte affichée dans une capsule ronde après le corps (gabarit "minimal" uniquement). */
   citation?: string;
+  /**
+   * Prompt d'une photo de fond SANS TEXTE (texture/scène uniquement — le
+   * texte reste rendu par satori, jamais par le modèle d'image). Facultatif,
+   * sur quelques slides seulement. Généré séparément (lib/openai.ts) puis
+   * passé en data URI à renderSlideToPng — ce champ ne contient que le
+   * prompt, pas l'image elle-même.
+   */
+  photo_prompt?: string;
 }
 
 const PALETTE: Record<LunaSlide["fond"], { bg: string; text: string; sub: string; muted: string }> = {
@@ -351,7 +359,8 @@ function ComparaisonBody({ slide, palette }: { slide: LunaSlide; palette: (typeo
   );
 }
 
-export async function renderSlideToPng(slide: LunaSlide, index: number, total: number): Promise<string> {
+/** Photo de fond en data URI (générée par lib/openai.ts à partir de slide.photo_prompt) — scène/texture uniquement, aucun texte dedans. */
+export async function renderSlideToPng(slide: LunaSlide, index: number, total: number, photo?: string): Promise<string> {
   const palette = PALETTE[slide.fond];
   const fonts = await loadFonts();
   const isLast = index === total - 1;
@@ -359,6 +368,15 @@ export async function renderSlideToPng(slide: LunaSlide, index: number, total: n
 
   const tree = (
     <div style={{ width: `${SIZE}px`, height: `${SIZE}px`, display: "flex", flexDirection: "column", backgroundColor: palette.bg, position: "relative" }}>
+      {photo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photo}
+          width={SIZE}
+          height={SIZE}
+          style={{ position: "absolute", top: "0px", left: "0px", width: `${SIZE}px`, height: `${SIZE}px`, objectFit: "cover", opacity: 0.16 }}
+        />
+      )}
       <Badge label={slide.label} color={palette.text} />
       {gabarit === "liste" ? (
         <ListeBody slide={slide} palette={palette} />

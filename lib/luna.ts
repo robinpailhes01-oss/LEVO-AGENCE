@@ -2,6 +2,7 @@ import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { callClaudeChat, callClaudeJson, type ChatTurn } from "@/lib/claude";
 import { renderSlideToPng, type LunaSlide } from "@/lib/luna-render";
+import { generateSlideImage } from "@/lib/openai";
 import { lunaSystemPrompt, lunaGeneratePrompt, type LunaCarouselResult } from "@/prompts/luna";
 import type { ContentItem, LunaReference } from "@/lib/db";
 
@@ -164,6 +165,21 @@ export async function generateCarousel(contentId: string): Promise<ContentItem> 
   return updated as ContentItem;
 }
 
+/**
+ * Génère la photo de fond d'une slide si elle a un `photo_prompt` — best-effort :
+ * une erreur ici (quota, contenu refusé...) ne doit jamais faire échouer le
+ * rendu de la slide, elle repasse juste sans photo.
+ */
+async function tryGenerateBackgroundPhoto(slide: LunaSlide, index: number): Promise<string | undefined> {
+  if (!slide.photo_prompt) return undefined;
+  try {
+    return await generateSlideImage(slide.photo_prompt);
+  } catch (err) {
+    console.error("[luna:background-photo]", index, err);
+    return undefined;
+  }
+}
+
 /** Rend les visuels de chaque slide (satori/resvg, rendu texte déterministe). Best-effort : garde les réussites même si une échoue. */
 export async function renderCarouselImages(contentId: string): Promise<{ item: ContentItem; failed: number[] }> {
   const db = supabaseAdmin();
@@ -179,7 +195,8 @@ export async function renderCarouselImages(contentId: string): Promise<{ item: C
   const failed: number[] = [];
   for (let i = 0; i < slides.length; i++) {
     try {
-      images[i] = await renderSlideToPng(slides[i]!, i, slides.length);
+      const photo = await tryGenerateBackgroundPhoto(slides[i]!, i);
+      images[i] = await renderSlideToPng(slides[i]!, i, slides.length, photo);
     } catch (err) {
       console.error("[luna:render-slide]", i, err);
       failed.push(i);
@@ -206,7 +223,8 @@ export async function regenerateSlideImage(contentId: string, slideIndex: number
   const slide = slides[slideIndex];
   if (!slide) throw new Error("Slide introuvable.");
 
-  const image = await renderSlideToPng(slide, slideIndex, slides.length);
+  const photo = await tryGenerateBackgroundPhoto(slide, slideIndex);
+  const image = await renderSlideToPng(slide, slideIndex, slides.length, photo);
   const images = Array.isArray(row.generated_images) ? [...row.generated_images] : new Array(slides.length).fill(null);
   images[slideIndex] = image;
 
