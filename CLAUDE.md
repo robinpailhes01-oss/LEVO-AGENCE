@@ -17,6 +17,11 @@ Objectif : `git push` → déploiement Vercel sans aucune config.
 > Protocol : ne jamais deviner une décision d'archi/design, demander),
 > `CAROUSEL_DESIGN.md` et `LUNA_SYSTEM_PROMPT.md` (charte contenu LUNA).
 > À lire avant toute évolution de fond.
+>
+> **Acquisition client : `docs/skills/acquisition/`** (6 skills ORION —
+> positionnement, offre, copywriting, vente, tunnel, playbook niche
+> hébergement). C'est la source de vérité ; `prompts/orion.ts` n'en est que la
+> version compilée. Toute évolution de fond se fait dans les skills d'abord.
 
 ## Marque Levo (référence)
 

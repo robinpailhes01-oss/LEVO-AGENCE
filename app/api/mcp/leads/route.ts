@@ -193,7 +193,7 @@ const { GET, POST } = mcpRoute("leads", [
   },
   {
     name: "enrich_lead",
-    description: "ORION enrichit + score un lead (Claude) selon la niche artisanale.",
+    description: "ORION enrichit + score un lead (Claude) selon le barème hébergement/établissements d'accueil.",
     input: { lead_id: "string" },
     run: async (input) => {
       const db = supabaseAdmin();
@@ -221,7 +221,7 @@ const { GET, POST } = mcpRoute("leads", [
   },
   {
     name: "generate_email1",
-    description: "ORION rédige l'Email 1 (offre d'audit) + l'accroche perso pour un lead.",
+    description: "ORION rédige l'Email 1 (structure 5 lignes, CTA = tester la démo) + l'accroche perso pour un lead.",
     input: { lead_id: "string", audit_link: "string?" },
     run: async (input) => {
       const db = supabaseAdmin();

@@ -2,16 +2,29 @@
 
 *Claude Code lit ce fichier au début de chaque session et le met à jour à la fin.*
 
-*Dernière mise à jour : 2026-06-29 — session « dashboard visuel premium ».*
+*Dernière mise à jour : 2026-07-29 — session « skills acquisition ORION ».*
 
 ---
 
 ## État du projet
-- Phase actuelle : **Dashboard visuel premium, terminé et en ligne** (Phase 2 « skeleton » du MASTER_PLAN, en version 100% mockée).
-- Déploiement : `levo-agence.vercel.app` (auto-deploy sur push de la branche `claude/levo-dashboard-setup-0mbsm3`).
-- 100% statique, **zéro backend / zéro variable d'env**. Données mockées dans `lib/mock.ts`.
+- Le backend est branché (Supabase + MCP + Claude API + Outscraper + Instantly + Resend + Telegram). `lib/mock.ts` ne sert plus que de reliquat visuel — ⚠️ `CLAUDE.md` décrit encore une version « 100% visuelle, zéro API » : **il est obsolète et à réécrire.**
+- Déploiement : `levo-agence.vercel.app`.
 - **Les 4 avatars réels sont en place** (`public/avatars/{luna,orion,hermes,veille}.png`, PNG 1254×1254).
-- Prochaine étape possible : enrichir les pages internes au niveau de l'Overview, ou (plus tard) brancher le backend du MASTER_PLAN.
+- **Chantier en cours : l'acquisition client.** Bibliothèque de skills ORION posée dans `docs/skills/acquisition/` (6 fichiers + README) et `prompts/orion.ts` recâblé dessus. Voir la section « Acquisition » plus bas.
+
+---
+
+## Acquisition — décisions validées par Robin (2026-07-29)
+- **Marque : Luma** (les prompts disent déjà Luma, les docs `docs/reference/` disent encore Levo → à harmoniser un jour).
+- **Un seul agent d'acquisition : ORION**, adossé à une bibliothèque de skills (`docs/skills/acquisition/`). Pas de multiplication d'agents.
+- **Niche : établissements d'accueil touristique du Sud à fort volume de demandes entrantes** (Gard / Hérault d'abord) — campings, hôtels indépendants, résidences, villages vacances, complexes. ⚠️ **Pas** les loueurs de bateaux : Harmonie Yacht est la **preuve**, pas le marché. L'ancienne cible « artisans Occitanie » est abandonnée.
+- **Offre : installation 100 % offerte, facturation uniquement à l'usage** (à la conversation traitée), avec marge sur l'usage. Robin a tranché en connaissance des risques (saisonnalité, pas de plancher) — les garde-fous retenus sont le filtre en amont, la contrepartie non monétaire obligatoire (nom + chiffres + témoignage) et une clause de reprise d'installation avant 3 mois.
+- **Pivot de valeur : du CA récupéré, pas du temps gagné.** « Le premier qui répond prend la réservation. »
+- **Le premier contact ne demande jamais un rendez-vous** : il propose de tester une démo WhatsApp en 30 secondes.
+- **Délivrabilité : le froid ne part jamais du domaine qui porte le transactionnel client.** Resend reste transactionnel ; si le froid passe par Resend, c'est sur un domaine dédié, emails vérifiés, warm-up progressif, 50/j maximum.
+- **Calendrier : on n'envoie pas de froid en juin-août.** Meilleure fenêtre = septembre (bilan de saison à chaud), puis janvier-mars.
+
+Restent à trancher : nom de l'offre, grille tarifaire définitive (après vérification des coûts réels WhatsApp/Meta), tarif catalogue de la clause de reprise, et si l'abonnement Instantly est toujours actif.
 
 ---
 
@@ -54,10 +67,19 @@
 
 ---
 
-## À faire prochaine session
-1. (Option) Enrichir pages internes (LUNA kanban, ORION pipeline, HERMES, Clients) au niveau de l'Overview : mini-graphes, mêmes finitions Apple.
-2. (Option) Animer plus finement (compteurs de chiffres, hover graphes).
-3. (Plus tard) Passage au réel : rebrancher le backend du MASTER_PLAN (Supabase + MCP + API agents) — récupérable dans l'historique git (1re itération supprimée lors du pivot « visuel »).
+## À faire prochaine session — acquisition (par ordre de rendement)
+1. **Numéro WhatsApp de démo** — l'actif central du tunnel. Sans lui l'email 1 retombe sur « prendre rendez-vous » et les réponses s'effondrent.
+2. **Ajouter `reviews` + `rating` au scraping** (`lib/outscraper.ts`) : le nombre d'avis Google est le proxy du volume de demandes, donc le premier critère du scoring — il n'est pas récupéré aujourd'hui.
+3. **Sourcer et vérifier la liste 300-400 établissements Gard/Hérault** (requêtes prêtes dans `docs/skills/acquisition/NICHE_HEBERGEMENT.md` §7).
+4. **Rédiger et faire valider l'email 1 + les 3 relances.**
+5. **Page de vente courte** dont le seul job est d'envoyer vers la démo (structure dans `COPYWRITING.md` §8).
+6. **Lecture du tunnel étape par étape dans le dashboard** (les `stage` existent déjà, la correspondance est dans `FUNNEL.md` §2).
+7. Envoi à partir de **début septembre** — pas avant.
+
+## À faire prochaine session — dette
+- **Réécrire `CLAUDE.md`** : il décrit une version « 100% visuelle, zéro API, données mockées » qui n'existe plus. Il induit en erreur toute nouvelle session.
+- Harmoniser Levo → Luma dans `docs/reference/`.
+- (Option) Enrichir les pages internes (LUNA kanban, ORION pipeline, HERMES, Clients) au niveau de l'Overview.
 
 ---
 
