@@ -7,6 +7,7 @@ import type {
   Audit,
   Client,
   ContentItem,
+  ContentSummary,
   HermesAnalysis,
   Lead,
   LunaReference,
@@ -319,15 +320,37 @@ export function getNiches(): Promise<Niche[]> {
   }, []);
 }
 
-export function getContent(): Promise<ContentItem[]> {
+/**
+ * Colonnes légères uniquement (voir ContentSummary) — les listes (Kanban,
+ * overview) ne lisent que id/titre/thème/statut/plateforme. Charger
+ * slides_content/generated_images/chat_history ici (potentiellement
+ * plusieurs Mo par ligne une fois les visuels générés) déclenchait un
+ * statement_timeout Postgres à chaque navigation dashboard/LUNA — cette
+ * requête tournait EN PLUS deux fois par chargement (page + getOverview()).
+ * Pour la ligne complète d'un post précis, voir getContentById().
+ */
+export function getContent(): Promise<ContentSummary[]> {
+  return safe(async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("content_calendar")
+      .select("id, created_at, title, theme, platform, status")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as ContentSummary[];
+  }, []);
+}
+
+/** Ligne complète d'un post LUNA (chat, slides, visuels) — chargée à la demande, jamais en liste. */
+export function getContentById(id: string): Promise<ContentItem | null> {
   return safe(async () => {
     const { data, error } = await supabaseAdmin()
       .from("content_calendar")
       .select("*")
-      .order("created_at", { ascending: false });
+      .eq("id", id)
+      .maybeSingle();
     if (error) throw error;
-    return (data ?? []) as ContentItem[];
-  }, []);
+    return (data as ContentItem | null) ?? null;
+  }, null);
 }
 
 /** Mémoire LUNA — bibliothèque de références visuelles permanentes. */

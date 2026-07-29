@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Images, Loader2, Trash2 } from "lucide-react";
-import type { ContentItem, ContentStatus } from "@/lib/db";
+import type { ContentSummary, ContentStatus } from "@/lib/db";
 
 const COLUMNS: { key: string; label: string; statuses: ContentStatus[] }[] = [
   { key: "idea", label: "Idée", statuses: ["idea", "approved_idea"] },
@@ -30,7 +30,7 @@ function fmtDate(iso: string): string {
 }
 
 interface ContentKanbanProps {
-  content: ContentItem[];
+  content: ContentSummary[];
   activeId?: string | null;
   onSelect?: (id: string | null) => void;
 }

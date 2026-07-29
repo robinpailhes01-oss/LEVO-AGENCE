@@ -35,13 +35,15 @@ function readFileAsDataUri(file: File): Promise<string> {
 }
 
 interface LunaChatProps {
-  content: ContentItem[];
   activeId: string | null;
+  activeItem: ContentItem | null;
+  loadingItem: boolean;
   onActiveIdChange: (id: string | null) => void;
+  onItemMutated: () => void;
 }
 
 /** Chat LUNA — brief conversationnel persisté en base (texte + images de référence), puis génération du carrousel. */
-export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps) {
+export function LunaChat({ activeId, activeItem, loadingItem, onActiveIdChange, onItemMutated }: LunaChatProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -53,20 +55,17 @@ export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
-  const activeItem = activeId ? content.find((c) => c.id === activeId) : undefined;
-
-  // Resynchronise l'historique affiché avec la base dès qu'elle a rattrapé l'id actif —
-  // ne JAMAIS vider `messages` juste parce que le prop `content` n'a pas encore rafraîchi
-  // (sinon une conversation tout juste créée se fait effacer avant même d'être vue).
+  // Resynchronise l'historique affiché avec la base dès que `activeItem` (chargé
+  // à la demande par LunaWorkspace) rattrape l'id actif — ne JAMAIS vider
+  // `messages` juste parce que le fetch n'a pas encore abouti (sinon une
+  // conversation tout juste créée se fait effacer avant même d'être vue).
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
       return;
     }
-    const item = content.find((c) => c.id === activeId);
-    if (item) setMessages(readHistory(item));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId, activeItem?.chat_history]);
+    if (activeItem && activeItem.id === activeId) setMessages(readHistory(activeItem));
+  }, [activeId, activeItem]);
 
   useEffect(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
@@ -132,6 +131,7 @@ export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps)
       }
       setMessages((m) => [...m, { role: "assistant", content: data.reply ?? "" }]);
       router.refresh();
+      onItemMutated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec de l'envoi.");
     } finally {
@@ -148,6 +148,7 @@ export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps)
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
       router.refresh();
+      onItemMutated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec de la génération.");
     } finally {
@@ -170,7 +171,7 @@ export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps)
       <div className="levo-card flex h-[520px] flex-col overflow-hidden p-0">
         <div className="flex items-center justify-between border-b border-line/60 px-4 py-2.5">
           <span className="text-[12.5px] font-medium text-muted">
-            {activeItem ? activeItem.title : "Nouveau brief"}
+            {activeItem ? activeItem.title : activeId && loadingItem ? "Chargement…" : "Nouveau brief"}
           </span>
           <button
             onClick={startNew}
@@ -290,7 +291,7 @@ export function LunaChat({ content, activeId, onActiveIdChange }: LunaChatProps)
         </div>
       </div>
 
-      <CarouselPreview item={activeItem ?? null} />
+      <CarouselPreview item={activeItem} onMutated={onItemMutated} />
     </div>
   );
 }

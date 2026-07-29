@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { ContentItem } from "@/lib/db";
+import { useCallback, useEffect, useState } from "react";
+import type { ContentItem, ContentSummary } from "@/lib/db";
 import { LunaChat } from "@/components/luna/LunaChat";
 import { ContentKanban } from "@/components/luna/ContentKanban";
 
@@ -35,9 +35,34 @@ function safeRemove(key: string): void {
   }
 }
 
-/** Coordonne le chat et le kanban : cliquer une carte rouvre sa conversation/son carrousel dans le chat. */
-export function LunaWorkspace({ content, children }: { content: ContentItem[]; children?: React.ReactNode }) {
+/**
+ * Coordonne le chat et le kanban : cliquer une carte rouvre sa conversation/
+ * son carrousel dans le chat. `content` (la liste, prop serveur) ne contient
+ * QUE les colonnes légères (voir ContentSummary) — la ligne complète d'un
+ * post (chat_history, slides_content, generated_images) est chargée à la
+ * demande ici, uniquement pour l'item actif, via GET /api/luna/[id].
+ */
+export function LunaWorkspace({ content, children }: { content: ContentSummary[]; children?: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<ContentItem | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+
+  const loadActiveItem = useCallback(async (id: string) => {
+    setLoadingItem(true);
+    try {
+      const res = await fetch(`/api/luna/${id}`);
+      if (!res.ok) {
+        setActiveItem(null);
+        return;
+      }
+      const data = (await res.json()) as { item?: ContentItem };
+      setActiveItem(data.item ?? null);
+    } catch {
+      setActiveItem(null);
+    } finally {
+      setLoadingItem(false);
+    }
+  }, []);
 
   // Hydratation une seule fois, au montage — validée contre le contenu déjà
   // chargé côté serveur. Après ça, `activeId` est piloté par l'utilisateur
@@ -53,15 +78,33 @@ export function LunaWorkspace({ content, children }: { content: ContentItem[]; c
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!activeId) {
+      setActiveItem(null);
+      return;
+    }
+    loadActiveItem(activeId);
+  }, [activeId, loadActiveItem]);
+
   function handleActiveIdChange(id: string | null) {
     setActiveId(id);
     if (id) safeSet(STORAGE_KEY, id);
     else safeRemove(STORAGE_KEY);
   }
 
+  function handleItemMutated() {
+    if (activeId) loadActiveItem(activeId);
+  }
+
   return (
     <div className="space-y-6">
-      <LunaChat content={content} activeId={activeId} onActiveIdChange={handleActiveIdChange} />
+      <LunaChat
+        activeId={activeId}
+        activeItem={activeItem}
+        loadingItem={loadingItem}
+        onActiveIdChange={handleActiveIdChange}
+        onItemMutated={handleItemMutated}
+      />
       {children}
       <ContentKanban content={content} activeId={activeId} onSelect={handleActiveIdChange} />
     </div>

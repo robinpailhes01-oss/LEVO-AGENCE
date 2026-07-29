@@ -20,7 +20,7 @@ const THEME_LABEL: Record<string, string> = {
 };
 
 /** Aperçu + génération du carrousel (texte puis visuels) une fois le brief LUNA prêt. */
-export function CarouselPreview({ item }: { item: ContentItem | null }) {
+export function CarouselPreview({ item, onMutated }: { item: ContentItem | null; onMutated?: () => void }) {
   const router = useRouter();
   const [rendering, setRendering] = useState(false);
   const [regenerating, setRegenerating] = useState<number | null>(null);
@@ -57,6 +57,7 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
       router.refresh();
+      onMutated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec de la génération des visuels.");
     } finally {
@@ -77,6 +78,7 @@ export function CarouselPreview({ item }: { item: ContentItem | null }) {
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
       router.refresh();
+      onMutated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec de la régénération.");
     } finally {

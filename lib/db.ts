@@ -190,6 +190,23 @@ export interface ContentItem {
   client_ref: string | null;
 }
 
+/**
+ * Version allégée de ContentItem — colonnes légères uniquement, sans
+ * slides_content/generated_images/chat_history (potentiellement plusieurs
+ * Mo par ligne une fois les visuels des carrousels générés). Utilisée pour
+ * les listes (Kanban LUNA, overview) qui n'ont besoin que du statut/titre —
+ * charger ces colonnes lourdes pour CHAQUE ligne à CHAQUE navigation faisait
+ * dépasser le statement_timeout Postgres.
+ */
+export interface ContentSummary {
+  id: string;
+  created_at: string;
+  title: string;
+  theme: ContentTheme | null;
+  platform: string[];
+  status: ContentStatus;
+}
+
 export interface ContentPerformance {
   id: string;
   content_id: string | null;
